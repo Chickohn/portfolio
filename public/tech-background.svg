@@ -1,0 +1,83 @@
+<svg
+  width="1920"
+  height="1080"
+  viewBox="0 0 1920 1080"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <defs>
+    <!-- Base gradient from near-black to dark blue -->
+    <linearGradient id="bgGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#000000" />
+      <stop offset="100%" stop-color="#0b1f3d" />
+    </linearGradient>
+
+    <!-- Lighter blue radial “ray” or swirl effect -->
+    <radialGradient id="lightRayGradient" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#00bfff" stop-opacity="0.2" />
+      <stop offset="80%" stop-color="#00bfff" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Background rect with the base gradient -->
+  <rect width="100%" height="100%" fill="url(#bgGradient)" />
+
+  <!-- Large arcs / circles to add subtle tech rings -->
+  <circle
+    cx="960"
+    cy="540"
+    r="500"
+    fill="none"
+    stroke="#3366ff"
+    stroke-width="2"
+    opacity="0.1"
+  />
+  <circle
+    cx="960"
+    cy="540"
+    r="700"
+    fill="none"
+    stroke="#44aaff"
+    stroke-width="2"
+    opacity="0.08"
+  />
+  <circle
+    cx="960"
+    cy="540"
+    r="900"
+    fill="none"
+    stroke="#00bfff"
+    stroke-width="2"
+    opacity="0.05"
+  />
+
+  <!-- Geometric shapes (polygons) with faint glow -->
+  <polygon
+    points="300,200 400,100 500,200"
+    fill="none"
+    stroke="#00bfff"
+    stroke-width="2"
+    opacity="0.15"
+  />
+  <polygon
+    points="1500,400 1600,300 1700,400"
+    fill="none"
+    stroke="#44aaff"
+    stroke-width="2"
+    opacity="0.1"
+  />
+  <polygon
+    points="500,700 600,600 700,700"
+    fill="none"
+    stroke="#44aaff"
+    stroke-width="2"
+    opacity="0.1"
+  />
+
+  <!-- Rays of light effect (a radial gradient overlay) -->
+  <circle
+    cx="960"
+    cy="540"
+    r="900"
+    fill="url(#lightRayGradient)"
+  />
+</svg>
