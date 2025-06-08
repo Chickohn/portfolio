@@ -49,9 +49,9 @@ export default function Home() {
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
               <h2 className="text-3xl font-bold text-white mb-6">About Me</h2>
               <p className="text-gray-300 text-lg mb-6">
-                I'm a passionate Computer Science graduate with a focus on game development and software engineering. 
+                I&apos;m a passionate Computer Science graduate with a focus on game development and software engineering. 
                 My journey in tech has led me to create everything from interactive 3D games to practical software solutions, 
-                always pushing the boundaries of what's possible.
+                always pushing the boundaries of what&apos;s possible.
               </p>
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="flex items-start gap-4">
@@ -125,9 +125,9 @@ export default function Home() {
         {/* Contact Section */}
         <section id="contact" className="py-20">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl font-bold text-white mb-6">Let's Connect</h2>
+            <h2 className="text-3xl font-bold text-white mb-6">Let&apos;s Connect</h2>
             <p className="text-gray-300 mb-8">
-              I'm always interested in hearing about new projects and opportunities.
+              I&apos;m always interested in hearing about new projects and opportunities.
             </p>
             <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700">
               <a href="mailto:your.email@example.com" className="flex items-center gap-2">
