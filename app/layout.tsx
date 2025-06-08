@@ -26,9 +26,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black`}>
         <Nav />
-        <main className="px-24 py-8 pt-20">
+        <main className="pt-20"> 
+          {/* "px-24 py-8 pt-20"> */}
           {children}
         </main>
       </body>

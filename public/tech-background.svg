@@ -52,7 +52,7 @@
 
   <!-- Geometric shapes (polygons) with faint glow -->
   <polygon
-    points="300,200 400,100 500,200"
+    points="300,200 400,100 500,200 450,200 450,250 400,200 350,250"
     fill="none"
     stroke="#00bfff"
     stroke-width="2"

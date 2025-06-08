@@ -1,64 +1,127 @@
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
+import { ArrowUpRight, Gamepad2, Code2 } from 'lucide-react'
 
 const projects = [
   {
     title: "Video Games",
     description: "Explore my game development projects",
+    icon: Gamepad2,
     items: [
-      { slug: "3d-asteroids", title: "3D Asteroids" },
-      { slug: "swish-master", title: "Swish Master" },
+      { 
+        slug: "3d-asteroids", 
+        title: "3D Asteroids",
+        description: "A modern take on the classic arcade game",
+        tags: ["Unity", "C#", "3D"]
+      },
+      { 
+        slug: "swish-master", 
+        title: "Swish Master",
+        description: "Basketball shooting game with physics-based gameplay",
+        tags: ["Unity", "C#", "Physics"]
+      },
     ]
   },
   {
     title: "Software",
     description: "Check out my software engineering projects",
+    icon: Code2,
     items: [
-      { slug: "gym-buddy", title: "Gym Buddy" },
-      { slug: "automated-fingerprint-identification-system", title: "Automated Fingerprint Identification System" },
+      { 
+        slug: "gym-buddy", 
+        title: "Gym Buddy",
+        description: "Personal fitness tracking and workout planning app",
+        tags: ["React", "TypeScript", "Node.js"]
+      },
+      { 
+        slug: "automated-fingerprint-identification-system", 
+        title: "Automated Fingerprint Identification System",
+        description: "Advanced biometric identification system",
+        tags: ["Python", "OpenCV", "Machine Learning"]
+      },
+      { 
+        slug: "https://sportsanalysis.kohn.me.uk", 
+        title: "Analysis Tool",
+        description: "Sports performance analysis platform",
+        tags: ["Web", "Analytics", "Data Visualization"]
+      },
     ]
   }
 ]
 
 export default function Projects() {
   return (
-    <div className="p-0">
-      {/* Background */}
-      <div
-        className="fixed inset-0 bg-[url('/tech-background.svg')] min-h-screen bg-cover bg-center -z-10"
-      />
+    <div className="min-h-screen">
+      {/* Background with gradient overlay */}
+      <div className="fixed inset-0 bg-[url('/tech-background.svg')] min-h-screen bg-cover bg-center -z-10" />
+      <div className="fixed inset-0 bg-gradient-to-b from-black/50 to-black/70 -z-10" />
 
       {/* Content */}
-      <div className="relative pl-4 pr-4 pt-8 mx-auto text-white">
-        <h1 className="
-          text-4xl 
-          font-bold 
-          mb-8
-          left-4
-          pt-4
-          text-white
-          text-center
-          "
-        >My Projects</h1>
-        <div className="grid md:grid-cols-2 gap-6 pl-4 pr-4">
+      <div className="container mx-auto px-4 py-12">
+        <h1 className="text-5xl font-bold text-white text-center mb-4">
+          My Projects
+        </h1>
+        <p className="text-gray-300 text-center mb-12 max-w-2xl mx-auto">
+          A collection of my work in game development and software engineering
+        </p>
+
+        <div className="grid md:grid-cols-2 gap-8">
           {projects.map((category) => (
-            <Card key={category.title}>
-              <CardHeader>
-                <CardTitle>{category.title}</CardTitle>
-                <CardDescription>{category.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="list-disc list-inside">
-                  {category.items.map((project) => (
-                    <li key={project.slug}>
-                      <Link href={`/projects/${project.slug}`} className="text-blue-600 hover:underline">
-                        {project.title}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
+            <div key={category.title} className="space-y-6">
+              <div className="flex items-center gap-3 mb-6">
+                <category.icon className="w-8 h-8 text-blue-500" />
+                <h2 className="text-3xl font-bold text-white">{category.title}</h2>
+              </div>
+              <p className="text-gray-300 mb-6">{category.description}</p>
+              
+              <div className="space-y-4">
+                {category.items.map((project) => (
+                  <Card key={project.slug} className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 transition-all duration-300">
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="text-xl text-white">
+                            {project.title}
+                          </CardTitle>
+                          <CardDescription className="text-gray-300 mt-2">
+                            {project.description}
+                          </CardDescription>
+                        </div>
+                        {project.slug.startsWith('http') ? (
+                          <a 
+                            href={project.slug} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-500 hover:text-blue-400 transition-colors"
+                          >
+                            <ArrowUpRight className="w-6 h-6" />
+                          </a>
+                        ) : (
+                          <Link 
+                            href={`/projects/${project.slug}`}
+                            className="text-blue-500 hover:text-blue-400 transition-colors"
+                          >
+                            <ArrowUpRight className="w-6 h-6" />
+                          </Link>
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-wrap gap-2">
+                        {project.tags.map((tag) => (
+                          <span 
+                            key={tag}
+                            className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </div>
