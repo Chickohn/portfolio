@@ -26,14 +26,9 @@ const projects = [
         slug: "gym-buddy",
         title: "Gym Buddy",
         description: "Personal fitness tracking and workout planning app",
-        tags: ["React", "TypeScript", "Node.js"]
-      },
-      {
-        slug: "automated-fingerprint-identification-system",
-        title: "Automated Fingerprint Identification System",
-        description: "Advanced biometric identification system",
-        tags: ["Python", "OpenCV", "Machine Learning"]
-      },
+        tags: ["React", "TypeScript", "Node.js"],
+        link: "https://github.com/Chickohn/GymBuddyApp/tree/main"
+      }
     ]
   },
   {
@@ -70,7 +65,7 @@ export default function Projects() {
           My Projects
         </h1>
         <p className="text-gray-300 text-center mb-12 max-w-2xl mx-auto">
-          A collection of my work in game development and software engineering
+          A collection of my work in software engineering and game development
         </p>
 
         <div className="grid md:grid-cols-2 gap-8">
