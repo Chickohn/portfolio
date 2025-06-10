@@ -4,46 +4,54 @@ import { ArrowUpRight, Gamepad2, Code2 } from 'lucide-react'
 
 const projects = [
   {
-    title: "Video Games",
-    description: "Explore my game development projects",
-    icon: Gamepad2,
-    items: [
-      { 
-        slug: "3d-asteroids", 
-        title: "3D Asteroids",
-        description: "A modern take on the classic arcade game",
-        tags: ["Unity", "C#", "3D"]
-      },
-      { 
-        slug: "swish-master", 
-        title: "Swish Master",
-        description: "Basketball shooting game with physics-based gameplay",
-        tags: ["Unity", "C#", "Physics"]
-      },
-    ]
-  },
-  {
     title: "Software",
     description: "Check out my software engineering projects",
     icon: Code2,
     items: [
-      { 
-        slug: "gym-buddy", 
+      {
+        slug: "https://sportsanalysis.kohn.me.uk",
+        title: "Analysis Tool",
+        description: "Sports performance analysis platform",
+        tags: ["Web", "Analytics", "Data Visualization"]
+      },
+      {
+        slug: "browns-road-garage-website",
+        title: "Browns Road Garage Website",
+        description: "A website I developed for a local garage",
+        tags: ["HTML/CSS", "PHP", "WordPress"],
+        external: true,
+        link: "https://www.brownsrdgaragesurbiton.co.uk"
+      },
+      {
+        slug: "gym-buddy",
         title: "Gym Buddy",
         description: "Personal fitness tracking and workout planning app",
         tags: ["React", "TypeScript", "Node.js"]
       },
-      { 
-        slug: "automated-fingerprint-identification-system", 
+      {
+        slug: "automated-fingerprint-identification-system",
         title: "Automated Fingerprint Identification System",
         description: "Advanced biometric identification system",
         tags: ["Python", "OpenCV", "Machine Learning"]
       },
-      { 
-        slug: "https://sportsanalysis.kohn.me.uk", 
-        title: "Analysis Tool",
-        description: "Sports performance analysis platform",
-        tags: ["Web", "Analytics", "Data Visualization"]
+    ]
+  },
+  {
+    title: "Video Games",
+    description: "Explore my game development projects",
+    icon: Gamepad2,
+    items: [
+      {
+        slug: "3d-asteroids",
+        title: "3D Asteroids",
+        description: "A modern take on the classic arcade game",
+        tags: ["Unity", "C#", "3D"]
+      },
+      {
+        slug: "swish-master",
+        title: "Swish Master",
+        description: "Basketball shooting game with physics-based gameplay",
+        tags: ["Unity", "C#", "Physics"]
       },
     ]
   }
@@ -66,14 +74,17 @@ export default function Projects() {
         </p>
 
         <div className="grid md:grid-cols-2 gap-8">
-          {projects.map((category) => (
-            <div key={category.title} className="space-y-6">
+          {/* Software on the left, Video Games on the right */}
+          {projects.map((category, idx) => (
+            <div
+              key={category.title}
+              className={`space-y-6 ${idx === 0 ? 'order-1' : 'order-2'}`}
+            >
               <div className="flex items-center gap-3 mb-6">
                 <category.icon className="w-8 h-8 text-blue-500" />
                 <h2 className="text-3xl font-bold text-white">{category.title}</h2>
               </div>
               <p className="text-gray-300 mb-6">{category.description}</p>
-              
               <div className="space-y-4">
                 {category.items.map((project) => (
                   <Card key={project.slug} className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 transition-all duration-300">
@@ -87,7 +98,17 @@ export default function Projects() {
                             {project.description}
                           </CardDescription>
                         </div>
-                        {project.slug.startsWith('http') ? (
+                        {/* External link for Browns Road Garage Website, otherwise use default logic */}
+                        {project.link ? (
+                          <a 
+                            href={project.link} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-500 hover:text-blue-400 transition-colors"
+                          >
+                            <ArrowUpRight className="w-6 h-6" />
+                          </a>
+                        ) : project.slug.startsWith('http') ? (
                           <a 
                             href={project.slug} 
                             target="_blank" 
