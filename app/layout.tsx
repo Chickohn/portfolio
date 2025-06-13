@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import Nav from '../components/nav';
 import "./globals.css";
+import Script from "next/script";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -27,6 +28,19 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black`}>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-VJ8DW3XTD7"
+          strategy="afterInteractive"
+          async
+        />
+        <Script id="gtag-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-VJ8DW3XTD7');
+          `}
+        </Script>
         <Nav />
         <main className="pt-20"> 
           {/* "px-24 py-8 pt-20"> */}

@@ -130,7 +130,7 @@ export default function Home() {
               I&apos;m always interested in hearing about new projects and opportunities.
             </p>
             <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700">
-              <a href="mailto:your.email@example.com" className="flex items-center gap-2">
+              <a href="mailto:freddiej.kohn@gmail.com" className="flex items-center gap-2">
                 Get in Touch
               </a>
             </Button>
