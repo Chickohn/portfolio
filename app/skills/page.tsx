@@ -1,5 +1,8 @@
+"use client";
 import React from "react";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { motion } from 'framer-motion';
+import { scrollAnimationVariants, staggerContainer, hoverLiftVariants, hoverScaleVariants } from '../../lib/utils';
 
 const technologies = [
   {
@@ -106,23 +109,56 @@ const technologies = [
 const Page = () => {
   return (
     <div className="bg-black text-white min-h-screen px-4 py-12">
-      <h2 className="text-4xl font-bold mb-4 text-center">Current technologies</h2>
-      <p className="mb-8 text-gray-300 max-w-2xl mx-auto text-center">
-        I'm proficient in a range of modern technologies that empower me to build highly functional solutions. These are some of my main technologies.
-      </p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {technologies.map((tech) => (
-          <Card key={tech.name} className="flex items-center space-x-4 bg-gray-900 hover:bg-gray-800 transition-colors">
-            <CardHeader className="flex flex-row items-center space-x-4 p-4">
-              <div>{tech.icon}</div>
-              <div>
-                <CardTitle className="text-lg text-white">{tech.name}</CardTitle>
-                <CardDescription>{tech.description}</CardDescription>
-              </div>
-            </CardHeader>
-          </Card>
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={staggerContainer}
+      >
+        <motion.h2 
+          className="text-4xl font-bold mb-4 text-center"
+          variants={scrollAnimationVariants}
+        >
+          Current technologies
+        </motion.h2>
+        <motion.p 
+          className="mb-8 text-gray-300 max-w-2xl mx-auto text-center"
+          variants={scrollAnimationVariants}
+        >
+          I'm proficient in a range of modern technologies that empower me to build highly functional solutions. These are some of my main technologies.
+        </motion.p>
+      </motion.div>
+      
+      <motion.div 
+        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+        variants={staggerContainer}
+      >
+        {technologies.map((tech, index) => (
+          <motion.div
+            key={tech.name}
+            variants={scrollAnimationVariants}
+            whileHover={{ y: -5, scale: 1.02 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card className="flex items-center space-x-4 bg-gray-900 hover:bg-gray-800 transition-all duration-300 hover-lift">
+              <CardHeader className="flex flex-row items-center space-x-4 p-4">
+                <motion.div
+                  whileHover={{ rotate: 360, scale: 1.1 }}
+                  transition={{ duration: 0.6 }}
+                >
+                  {tech.icon}
+                </motion.div>
+                <div>
+                  <CardTitle className="text-lg text-white">{tech.name}</CardTitle>
+                  <CardDescription>{tech.description}</CardDescription>
+                </div>
+              </CardHeader>
+            </Card>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 };
