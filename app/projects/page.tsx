@@ -20,6 +20,14 @@ interface ProjectItem {
 // Additional projects that are external or don't have detail pages
 const additionalProjects: ProjectItem[] = [
   {
+    slug: "https://github.com/Chickohn/Trading-Bot",
+    title: "Day Trading Bot (In Progress)",
+    description: "Day trading bot using the Alpaca API",
+    tags: ["Python", "Alpaca API", "Trading"],
+    category: "Software Development",
+    external: true,
+  },
+  {
     slug: "beckohn-digital",
     title: "Beckohn Digital",
     description: "Startup web design company building modern, high-impact digital experiences.",
@@ -29,9 +37,25 @@ const additionalProjects: ProjectItem[] = [
     link: "https://beckohn.com"
   },
   {
-    slug: "https://sportsanalysis.kohn.me.uk",
-    title: "Analysis Tool",
-    description: "Sports performance analysis platform",
+    slug: "https://github.com/Chickohn/Visual_Robot_Arm",
+    title: "Dissertation Project - Visual Robot Arm",
+    description: "Teaching a robotic arm using PandaGym and reinforcement learning to perform chemical synthesis",
+    tags: ["Python", "Reinforcement Learning", "Robotics"],
+    category: "Software Development",
+    external: true,
+  },
+  {
+    slug: "https://github.com/PeterBeckDev/BeckohnSoftwarePlatform",
+    title: "Beckohn Digital Software Platform",
+    description: "Software platform for Beckohn Digital - Click the arrow to view the code on GitHub",
+    tags: ["Node.js", "Python", "JavaScript"],
+    category: "Software Development",
+    external: true
+  },
+  {
+    slug: "https://github.com/Chickohn/Sports-Analysis",
+    title: "Analysis Tool (Offline)",
+    description: "Sports performance analysis platform - Click the arrow to view the code on GitHub",
     tags: ["Web", "Analytics", "Data Visualization"],
     category: "Web Development",
     external: true
@@ -76,15 +100,15 @@ const categoryConfig: Record<string, { title: string; description: string; icon:
     description: "Check out my software engineering projects",
     icon: Code2
   },
-  "Video Games": {
-    title: "Video Games", 
-    description: "Explore my game development projects",
-    icon: Gamepad2
-  },
   "Web Development": {
     title: "Web Development",
     description: "Modern web applications and digital experiences",
     icon: Code2
+  },
+  "Video Games": {
+    title: "Video Games", 
+    description: "Explore my game development projects",
+    icon: Gamepad2
   }
 };
 
@@ -110,7 +134,7 @@ function getGroupedProjects(): ProjectCategory[] {
   });
   
   // Convert to array format with category info, maintaining order
-  const categoryOrder = ["Software Development", "Video Games", "Web Development"];
+  const categoryOrder = ["Software Development", "Web Development", "Video Games"];
   const result: ProjectCategory[] = [];
   
   // Add categories in specified order
