@@ -260,9 +260,11 @@ function Home({ onContactClick }: { onContactClick: () => void }) {
                 className="text-gray-300 text-lg mb-6"
                 variants={scrollAnimationVariants}
               >
-                I&apos;m a passionate Computer Science graduate with a focus on game development and software engineering. 
-                My journey in tech has led me to create everything from interactive 3D games to practical software solutions, 
-                always pushing the boundaries of what&apos;s possible.
+                I&apos;m a passionate Computer Science graduate with a focus on web development and software engineering. 
+                My journey in tech has led me to create everything from interactive 3D games to highly responsive front-end applications, 
+                always pushing the boundaries of what&apos;s possible. 
+                I&apos;m currently working as a Web Developer at my startup <a href="https://beckohn.com/" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline transition-colors duration-200">Beckohn Digital</a> but 
+                am always looking for new opportunities to learn and grow.
               </motion.p>
               <motion.div 
                 className="grid md:grid-cols-2 gap-6"
@@ -302,9 +304,9 @@ function Home({ onContactClick }: { onContactClick: () => void }) {
                   <div>
                     <h3 className="text-xl font-semibold text-white mb-2">Experience</h3>
                     <p className="text-gray-300">
-                      Game Development & Software Engineering
+                      Web Development & Software Engineering
                       <br />
-                      <span className="text-sm text-gray-400">Unity, Unreal Engine, Full-Stack Development</span>
+                      <span className="text-sm text-gray-400">React, Python, C#, Full-Stack Development</span>
                     </p>
                   </div>
                 </motion.div>
@@ -352,19 +354,26 @@ function Home({ onContactClick }: { onContactClick: () => void }) {
                   className="space-y-4"
                   variants={staggerContainer}
                 >
-                  {['C#', 'Python', 'JavaScript', 'TypeScript', 'React', 'Node.js'].map((skill, index) => (
+                  {[
+                    { name: 'Python', level: '100%' },
+                    { name: 'React', level: '90%' },
+                    { name: 'C#', level: '90%' },
+                    { name: 'JavaScript', level: '60%' },
+                    { name: 'Swift', level: '60%' },
+                    { name: '.NET', level: '60%' }
+                  ].map((skill, index) => (
                     <motion.div 
-                      key={skill} 
+                      key={skill.name} 
                       className="flex items-center justify-between"
                       variants={scrollAnimationVariants}
                       whileHover={{ x: 5 }}
                     >
-                      <span className="text-gray-300">{skill}</span>
+                      <span className="text-gray-300">{skill.name}</span>
                       <div className="w-32 h-2 bg-white/10 rounded-full overflow-hidden">
                         <motion.div 
                           className="h-full bg-blue-500 rounded-full"
                           initial={{ width: 0 }}
-                          whileInView={{ width: '90%' }}
+                          whileInView={{ width: skill.level }}
                           transition={{ duration: 1, delay: index * 0.1 }}
                         />
                       </div>
@@ -392,19 +401,26 @@ function Home({ onContactClick }: { onContactClick: () => void }) {
                   className="space-y-4"
                   variants={staggerContainer}
                 >
-                  {['Unity', 'Unreal Engine', '3D Modeling', 'Game Physics', 'AI Programming'].map((skill, index) => (
+                  {[
+                    { name: 'Unity', level: '95%' },
+                    { name: 'AI Programming', level: '85%' },
+                    { name: 'Game Design', level: '80%' },
+                    { name: 'Game Physics', level: '75%' },
+                    { name: 'Unreal Engine', level: '40%' },
+                    { name: '3D Modeling', level: '30%' }
+                  ].map((skill, index) => (
                     <motion.div 
-                      key={skill} 
+                      key={skill.name} 
                       className="flex items-center justify-between"
                       variants={scrollAnimationVariants}
                       whileHover={{ x: 5 }}
                     >
-                      <span className="text-gray-300">{skill}</span>
+                      <span className="text-gray-300">{skill.name}</span>
                       <div className="w-32 h-2 bg-white/10 rounded-full overflow-hidden">
                         <motion.div 
                           className="h-full bg-blue-500 rounded-full"
                           initial={{ width: 0 }}
-                          whileInView={{ width: '85%' }}
+                          whileInView={{ width: skill.level }}
                           transition={{ duration: 1, delay: index * 0.1 }}
                         />
                       </div>

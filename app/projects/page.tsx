@@ -4,64 +4,143 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../..
 import { ArrowUpRight, Gamepad2, Code2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { scrollAnimationVariants, slideInLeftVariants, slideInRightVariants, staggerContainer, hoverLiftVariants, hoverScaleVariants } from '../../lib/utils'
+import { projects } from '../../lib/projects'
 
-const projects = [
+// Type for project items displayed in the listing
+interface ProjectItem {
+  slug: string;
+  title: string;
+  description: string;
+  tags: string[];
+  category: string;
+  external: boolean;
+  link?: string;
+}
+
+// Additional projects that are external or don't have detail pages
+const additionalProjects: ProjectItem[] = [
   {
-    title: "Software",
-    description: "Check out my software engineering projects",
-    icon: Code2,
-    items: [
-      {
-        slug: "beckohn-digital",
-        title: "Beckohn Digital",
-        description: "Startup web design company building modern, high-impact digital experiences.",
-        tags: ["React", "Python", "UI/UX"],
-        external: true,
-        link: "https://beckohn.com"
-      },
-      {
-        slug: "https://sportsanalysis.kohn.me.uk",
-        title: "Analysis Tool",
-        description: "Sports performance analysis platform",
-        tags: ["Web", "Analytics", "Data Visualization"]
-      },
-      {
-        slug: "browns-road-garage-website",
-        title: "Browns Road Garage Website",
-        description: "A website I developed for a local garage",
-        tags: ["HTML/CSS", "PHP", "WordPress"],
-        external: true,
-        link: "https://www.brownsrdgaragesurbiton.co.uk"
-      },
-      {
-        slug: "gym-buddy",
-        title: "Gym Buddy",
-        description: "Personal fitness tracking and workout planning app",
-        tags: ["React", "TypeScript", "Node.js"],
-        link: "https://github.com/Chickohn/GymBuddyApp/tree/main"
-      }
-    ]
+    slug: "beckohn-digital",
+    title: "Beckohn Digital",
+    description: "Startup web design company building modern, high-impact digital experiences.",
+    tags: ["React", "Python", "UI/UX"],
+    category: "Web Development",
+    external: true,
+    link: "https://beckohn.com"
   },
   {
-    title: "Video Games",
-    description: "Explore my game development projects",
-    icon: Gamepad2,
-    items: [
-      {
-        slug: "3d-asteroids",
-        title: "3D Asteroids",
-        description: "A modern take on the classic arcade game",
-        tags: ["Unity", "C#", "3D"]
-      },
-      {
-        slug: "swish-master",
-        title: "Swish Master",
-        description: "Basketball shooting game with physics-based gameplay",
-        tags: ["Unity", "C#", "Physics"]
-      },
-    ]
+    slug: "https://sportsanalysis.kohn.me.uk",
+    title: "Analysis Tool",
+    description: "Sports performance analysis platform",
+    tags: ["Web", "Analytics", "Data Visualization"],
+    category: "Web Development",
+    external: true
+  },
+  {
+    slug: "browns-road-garage-website",
+    title: "Browns Road Garage Website",
+    description: "A website I developed for a local garage",
+    tags: ["HTML/CSS", "PHP", "WordPress"],
+    category: "Web Development",
+    external: true,
+    link: "https://www.brownsrdgaragesurbiton.co.uk"
+  },
+  {
+    slug: "gym-buddy",
+    title: "Gym Buddy",
+    description: "Personal fitness tracking and workout planning app",
+    tags: ["React", "TypeScript", "Node.js"],
+    category: "Software Development",
+    external: true,
+    link: "https://github.com/Chickohn/GymBuddyApp/tree/main"
   }
-]
+];
+
+// Combine projects from centralized data with additional external projects
+const allProjects: ProjectItem[] = [
+  ...projects.map(project => ({
+    slug: project.id,
+    title: project.title,
+    description: project.description,
+    tags: project.technologies,
+    category: project.category,
+    external: false
+  })),
+  ...additionalProjects
+];
+
+// Category configuration with display settings
+const categoryConfig: Record<string, { title: string; description: string; icon: any }> = {
+  "Software Development": {
+    title: "Software Development",
+    description: "Check out my software engineering projects",
+    icon: Code2
+  },
+  "Video Games": {
+    title: "Video Games", 
+    description: "Explore my game development projects",
+    icon: Gamepad2
+  },
+  "Web Development": {
+    title: "Web Development",
+    description: "Modern web applications and digital experiences",
+    icon: Code2
+  }
+};
+
+// Type for grouped project categories
+interface ProjectCategory {
+  category: string;
+  title: string;
+  description: string;
+  icon: any;
+  items: ProjectItem[];
+}
+
+// Dynamically group projects by category
+function getGroupedProjects(): ProjectCategory[] {
+  const grouped: Record<string, ProjectItem[]> = {};
+  
+  // Group projects by category
+  allProjects.forEach(project => {
+    if (!grouped[project.category]) {
+      grouped[project.category] = [];
+    }
+    grouped[project.category].push(project);
+  });
+  
+  // Convert to array format with category info, maintaining order
+  const categoryOrder = ["Software Development", "Video Games", "Web Development"];
+  const result: ProjectCategory[] = [];
+  
+  // Add categories in specified order
+  categoryOrder.forEach(category => {
+    if (grouped[category] && grouped[category].length > 0) {
+      result.push({
+        category,
+        title: categoryConfig[category]?.title || category,
+        description: categoryConfig[category]?.description || `Projects in ${category}`,
+        icon: categoryConfig[category]?.icon || Code2,
+        items: grouped[category]
+      });
+    }
+  });
+  
+  // Add any remaining categories not in the specified order
+  Object.keys(grouped).forEach(category => {
+    if (!categoryOrder.includes(category) && grouped[category].length > 0) {
+      result.push({
+        category,
+        title: categoryConfig[category]?.title || category,
+        description: categoryConfig[category]?.description || `Projects in ${category}`,
+        icon: categoryConfig[category]?.icon || Code2,
+        items: grouped[category]
+      });
+    }
+  });
+  
+  return result;
+}
 
 export default function Projects() {
   return (
@@ -92,18 +171,18 @@ export default function Projects() {
         </motion.div>
 
         <motion.div 
-          className="grid md:grid-cols-2 gap-8"
+          className="space-y-16"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.3 }}
           variants={staggerContainer}
         >
-          {/* Software on the left, Video Games on the right */}
-          {projects.map((category, idx) => (
+          {/* Categories stacked vertically */}
+          {getGroupedProjects().map((category: ProjectCategory, idx: number) => (
             <motion.div
-              key={category.title}
-              className={`space-y-6 ${idx === 0 ? 'order-1' : 'order-2'}`}
-              variants={idx === 0 ? slideInLeftVariants : slideInRightVariants}
+              key={category.category}
+              className="space-y-6"
+              variants={scrollAnimationVariants}
             >
               <motion.div 
                 className="flex items-center gap-3 mb-6"
@@ -123,11 +202,13 @@ export default function Projects() {
               >
                 {category.description}
               </motion.p>
+              
+              {/* Projects grid for this category */}
               <motion.div 
-                className="space-y-4"
+                className="grid md:grid-cols-2 gap-6"
                 variants={staggerContainer}
               >
-                {category.items.map((project, projectIndex) => (
+                {category.items.map((project: ProjectItem, projectIndex: number) => (
                   <motion.div
                     key={project.slug}
                     variants={scrollAnimationVariants}
@@ -149,8 +230,8 @@ export default function Projects() {
                             whileHover={{ scale: 1.2, rotate: 45 }}
                             whileTap={{ scale: 0.9 }}
                           >
-                            {/* External link for Browns Road Garage Website, otherwise use default logic */}
-                            {project.link ? (
+                            {/* Render link based on project type */}
+                            {project.external && project.link ? (
                               <a 
                                 href={project.link} 
                                 target="_blank" 
@@ -159,7 +240,7 @@ export default function Projects() {
                               >
                                 <ArrowUpRight className="w-6 h-6" />
                               </a>
-                            ) : project.slug.startsWith('http') ? (
+                            ) : project.external && project.slug.startsWith('http') ? (
                               <a 
                                 href={project.slug} 
                                 target="_blank" 
@@ -184,7 +265,7 @@ export default function Projects() {
                           className="flex flex-wrap gap-2"
                           variants={staggerContainer}
                         >
-                          {project.tags.map((tag, tagIndex) => (
+                          {project.tags.map((tag: string, tagIndex: number) => (
                             <motion.span 
                               key={tag}
                               className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm"
