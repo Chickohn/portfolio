@@ -1,5 +1,6 @@
 "use client";
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronUp, Menu, X } from 'lucide-react'
@@ -9,6 +10,13 @@ export default function Nav({ onContactClick }: { onContactClick?: () => void })
   const [scrolled, setScrolled] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const pathname = usePathname()
+
+  const isActive = (path: string) => {
+    if (path === '/' && pathname === '/') return true;
+    if (path !== '/' && pathname.startsWith(path)) return true;
+    return false;
+  };
 
   useEffect(() => {
     const handleContactModal = () => setShowContact(true);
@@ -86,37 +94,58 @@ export default function Nav({ onContactClick }: { onContactClick?: () => void })
             <motion.div className="inline-block" role="none">
               <Link 
                 href="/" 
-                className="text-gray-300 hover:text-white transition-colors duration-300 relative group text-sm lg:text-base focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-gray-900 rounded px-2 py-1"
+                className={`transition-colors duration-300 relative group text-sm lg:text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 rounded px-2 py-1 ${
+                  isActive('/') 
+                    ? 'text-white' 
+                    : 'text-gray-300 hover:text-white'
+                }`}
                 role="menuitem"
+                aria-current={isActive('/') ? 'page' : undefined}
               >
                 <span>Home</span>
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-300 group-hover:w-full"></span>
+                <span className={`absolute -bottom-1 left-0 h-0.5 bg-blue-500 transition-all duration-300 ${
+                  isActive('/') ? 'w-full' : 'w-0 group-hover:w-full'
+                }`}></span>
               </Link>
             </motion.div>
             <motion.div className="inline-block" role="none">
               <Link 
                 href="/projects" 
-                className="text-gray-300 hover:text-white transition-colors duration-300 relative group text-sm lg:text-base focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-gray-900 rounded px-2 py-1"
+                className={`transition-colors duration-300 relative group text-sm lg:text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 rounded px-2 py-1 ${
+                  isActive('/projects') 
+                    ? 'text-white' 
+                    : 'text-gray-300 hover:text-white'
+                }`}
                 role="menuitem"
+                aria-current={isActive('/projects') ? 'page' : undefined}
               >
                 <span>Projects</span>
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-300 group-hover:w-full"></span>
+                <span className={`absolute -bottom-1 left-0 h-0.5 bg-blue-500 transition-all duration-300 ${
+                  isActive('/projects') ? 'w-full' : 'w-0 group-hover:w-full'
+                }`}></span>
               </Link>
             </motion.div>
             <motion.div className="inline-block" role="none">
               <Link 
                 href="/skills" 
-                className="text-gray-300 hover:text-white transition-colors duration-300 relative group text-sm lg:text-base focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-gray-900 rounded px-2 py-1"
+                className={`transition-colors duration-300 relative group text-sm lg:text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 rounded px-2 py-1 ${
+                  isActive('/skills') 
+                    ? 'text-white' 
+                    : 'text-gray-300 hover:text-white'
+                }`}
                 role="menuitem"
+                aria-current={isActive('/skills') ? 'page' : undefined}
               >
                 <span>Skills</span>
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-300 group-hover:w-full"></span>
+                <span className={`absolute -bottom-1 left-0 h-0.5 bg-blue-500 transition-all duration-300 ${
+                  isActive('/skills') ? 'w-full' : 'w-0 group-hover:w-full'
+                }`}></span>
               </Link>
             </motion.div>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="bg-yellow-500 text-black px-3 lg:px-4 py-2 rounded hover:bg-yellow-400 transition-all duration-300 hover:shadow-lg text-sm lg:text-base focus:outline-none focus:ring-2 focus:ring-yellow-600 focus:ring-offset-2 focus:ring-offset-gray-900"
+              className="bg-yellow-500 text-black px-3 lg:px-4 py-2 rounded hover:bg-yellow-400 transition-all duration-300 hover:shadow-lg text-sm lg:text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-600 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
               onClick={onContactClick ? onContactClick : () => setShowContact(true)}
               role="menuitem"
             >

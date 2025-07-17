@@ -35,6 +35,7 @@ export default function Home() {
                 fill
                 className="object-cover"
                 priority
+                fetchPriority="high"
                 sizes="(max-width: 768px) 128px, 144px"
                 quality={85}
               />

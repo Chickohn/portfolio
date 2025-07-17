@@ -55,33 +55,56 @@ const skillCategories = [
   }
 ];
 
-const SkillBar = ({ skill, index }: { skill: any, index: number }) => (
-  <motion.div
-    initial={{ opacity: 0, x: -20 }}
-    whileInView={{ opacity: 1, x: 0 }}
-    viewport={{ once: true }}
-    transition={{ delay: index * 0.1 }}
-    className="group"
-  >
-    <div className="flex items-center justify-between mb-2">
-      <div className="flex items-center gap-2">
-        <span className="text-lg" role="img" aria-label={skill.name}>{skill.icon}</span>
-        <h4 className="font-semibold text-white text-sm md:text-base">{skill.name}</h4>
+const SkillBar = ({ skill, index }: { skill: any, index: number }) => {
+  // Convert percentage to experience level
+  const getExperienceLevel = (level: number) => {
+    if (level >= 90) return { text: "Expert", years: "4+ yrs" };
+    if (level >= 80) return { text: "Advanced", years: "3+ yrs" };
+    if (level >= 70) return { text: "Intermediate", years: "2+ yrs" };
+    if (level >= 60) return { text: "Beginner+", years: "1+ yrs" };
+    return { text: "Learning", years: "<1 yr" };
+  };
+
+  const experience = getExperienceLevel(skill.level);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.1 }}
+      className="group"
+    >
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <span className="text-lg" role="img" aria-label={skill.name}>{skill.icon}</span>
+          <h4 className="font-semibold text-white text-sm md:text-base">{skill.name}</h4>
+        </div>
+        <span className="text-gray-300 text-sm font-medium">
+          {experience.text}
+          <span className="sr-only"> ({experience.years} experience)</span>
+        </span>
       </div>
-      <span className="text-gray-300 text-sm font-medium">{skill.level}%</span>
-    </div>
-    <div className="w-full bg-gray-700 rounded-full h-2 mb-1 overflow-hidden">
-      <motion.div
-        className="h-full bg-gradient-to-r from-current to-current rounded-full"
-        initial={{ width: 0 }}
-        whileInView={{ width: `${skill.level}%` }}
-        viewport={{ once: true }}
-        transition={{ duration: 1, delay: index * 0.1 }}
-      />
-    </div>
-    <p className="text-gray-400 text-xs">{skill.description}</p>
-  </motion.div>
-);
+      <div 
+        className="w-full bg-gray-700 rounded-full h-2 mb-1 overflow-hidden"
+        role="progressbar"
+        aria-label={`${skill.name} proficiency`}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={skill.level}
+      >
+        <motion.div
+          className="h-full bg-gradient-to-r from-current to-current rounded-full"
+          initial={{ width: 0 }}
+          whileInView={{ width: `${skill.level}%` }}
+          viewport={{ once: true }}
+          transition={{ duration: 1, delay: index * 0.1 }}
+        />
+      </div>
+      <p className="text-gray-400 text-xs">{skill.description}</p>
+    </motion.div>
+  );
+};
 
 export default function Skills() {
   return (
