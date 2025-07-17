@@ -11,6 +11,12 @@ export default function Nav({ onContactClick }: { onContactClick?: () => void })
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   useEffect(() => {
+    const handleContactModal = () => setShowContact(true);
+    window.addEventListener('openContactModal', handleContactModal);
+    return () => window.removeEventListener('openContactModal', handleContactModal);
+  }, []);
+
+  useEffect(() => {
     const handleScroll = () => {
       const isScrolled = window.scrollY > 20;
       const shouldShowScrollTop = window.scrollY > 400;
@@ -63,6 +69,8 @@ export default function Nav({ onContactClick }: { onContactClick?: () => void })
           hidden md:block
           ${scrolled ? 'bg-gray-900/95 backdrop-blur-md shadow-xl' : 'bg-gray-900'}
         `}
+        role="navigation"
+        aria-label="Main navigation"
       >
         <header className="flex justify-between items-center px-6 lg:px-8 py-3 lg:py-4 bg-transparent rounded-full">
           <motion.h1 
@@ -70,31 +78,36 @@ export default function Nav({ onContactClick }: { onContactClick?: () => void })
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.2 }}
           >
-            Freddie Kohn
+            <Link href="/" aria-label="Freddie Kohn - Home">
+              Freddie Kohn
+            </Link>
           </motion.h1>
-          <nav className="space-x-3 lg:space-x-4">
-            <motion.div className="inline-block">
+          <nav className="space-x-3 lg:space-x-4" role="menubar">
+            <motion.div className="inline-block" role="none">
               <Link 
                 href="/" 
-                className="text-gray-300 hover:text-white transition-colors duration-300 relative group text-sm lg:text-base"
+                className="text-gray-300 hover:text-white transition-colors duration-300 relative group text-sm lg:text-base focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-gray-900 rounded px-2 py-1"
+                role="menuitem"
               >
                 <span>Home</span>
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-300 group-hover:w-full"></span>
               </Link>
             </motion.div>
-            <motion.div className="inline-block">
+            <motion.div className="inline-block" role="none">
               <Link 
                 href="/projects" 
-                className="text-gray-300 hover:text-white transition-colors duration-300 relative group text-sm lg:text-base"
+                className="text-gray-300 hover:text-white transition-colors duration-300 relative group text-sm lg:text-base focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-gray-900 rounded px-2 py-1"
+                role="menuitem"
               >
                 <span>Projects</span>
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-300 group-hover:w-full"></span>
               </Link>
             </motion.div>
-            <motion.div className="inline-block">
+            <motion.div className="inline-block" role="none">
               <Link 
                 href="/skills" 
-                className="text-gray-300 hover:text-white transition-colors duration-300 relative group text-sm lg:text-base"
+                className="text-gray-300 hover:text-white transition-colors duration-300 relative group text-sm lg:text-base focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-gray-900 rounded px-2 py-1"
+                role="menuitem"
               >
                 <span>Skills</span>
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-300 group-hover:w-full"></span>
@@ -103,8 +116,9 @@ export default function Nav({ onContactClick }: { onContactClick?: () => void })
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="bg-yellow-500 text-black px-3 lg:px-4 py-2 rounded hover:bg-yellow-400 transition-all duration-300 hover:shadow-lg text-sm lg:text-base"
+              className="bg-yellow-500 text-black px-3 lg:px-4 py-2 rounded hover:bg-yellow-400 transition-all duration-300 hover:shadow-lg text-sm lg:text-base focus:outline-none focus:ring-2 focus:ring-yellow-600 focus:ring-offset-2 focus:ring-offset-gray-900"
               onClick={onContactClick ? onContactClick : () => setShowContact(true)}
+              role="menuitem"
             >
               Contact
             </motion.button>
@@ -131,6 +145,8 @@ export default function Nav({ onContactClick }: { onContactClick?: () => void })
           md:hidden
           ${scrolled ? 'bg-gray-900/95 backdrop-blur-md shadow-xl' : 'bg-gray-900'}
         `}
+        role="navigation"
+        aria-label="Mobile navigation"
       >
         <header className="flex justify-between items-center px-4 py-3 bg-transparent rounded-2xl">
           <motion.h1 
@@ -138,14 +154,17 @@ export default function Nav({ onContactClick }: { onContactClick?: () => void })
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.2 }}
           >
-            Freddie Kohn
+            <Link href="/" aria-label="Freddie Kohn - Home">
+              Freddie Kohn
+            </Link>
           </motion.h1>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 text-gray-300 hover:text-white transition-colors duration-300"
-            aria-label="Toggle mobile menu"
+            className="p-2 text-gray-300 hover:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
+            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isMobileMenuOpen}
           >
             {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </motion.button>
@@ -160,17 +179,20 @@ export default function Nav({ onContactClick }: { onContactClick?: () => void })
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
               className="border-t border-gray-700 bg-gray-800/50 rounded-b-2xl overflow-hidden"
+              role="menu"
             >
               <div className="py-4 px-4 space-y-3">
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.1 }}
+                  role="none"
                 >
                   <Link 
                     href="/" 
-                    className="block py-2 px-4 text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-300"
+                    className="block py-2 px-4 text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-gray-800"
                     onClick={closeMobileMenu}
+                    role="menuitem"
                   >
                     Home
                   </Link>
@@ -179,11 +201,13 @@ export default function Nav({ onContactClick }: { onContactClick?: () => void })
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2 }}
+                  role="none"
                 >
                   <Link 
                     href="/projects" 
-                    className="block py-2 px-4 text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-300"
+                    className="block py-2 px-4 text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-gray-800"
                     onClick={closeMobileMenu}
+                    role="menuitem"
                   >
                     Projects
                   </Link>
@@ -192,11 +216,13 @@ export default function Nav({ onContactClick }: { onContactClick?: () => void })
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.3 }}
+                  role="none"
                 >
                   <Link 
                     href="/skills" 
-                    className="block py-2 px-4 text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-300"
+                    className="block py-2 px-4 text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-gray-800"
                     onClick={closeMobileMenu}
+                    role="menuitem"
                   >
                     Skills
                   </Link>
@@ -205,10 +231,12 @@ export default function Nav({ onContactClick }: { onContactClick?: () => void })
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.4 }}
+                  role="none"
                 >
                   <button
-                    className="w-full text-left py-2 px-4 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-all duration-300 font-medium"
+                    className="w-full text-left py-2 px-4 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-all duration-300 font-medium focus:outline-none focus:ring-2 focus:ring-yellow-600 focus:ring-offset-2 focus:ring-offset-gray-800"
                     onClick={handleMobileContactClick}
+                    role="menuitem"
                   >
                     Contact
                   </button>

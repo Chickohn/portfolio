@@ -15,7 +15,7 @@ function renderTextWithLinks(text: string) {
           href={part}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-400 hover:text-blue-300 underline transition-colors duration-200"
+          className="text-blue-400 hover:text-blue-300 underline transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
         >
           {part}
         </a>
@@ -23,6 +23,66 @@ function renderTextWithLinks(text: string) {
     }
     return part;
   });
+}
+
+// Enhanced video component with accessibility features
+function AccessibleVideo({ section, index }: { section: ProjectSection; index: number }) {
+  return (
+    <div key={index} className="mb-4">
+      <div className="relative">
+        <video 
+          controls 
+          className="rounded-lg mx-auto w-full max-w-xl"
+          preload="metadata"
+          poster={section.poster || undefined}
+          aria-label={section.alt || "Project demonstration video"}
+        >
+          <source src={section.src} type="video/mp4" />
+          {section.captions && (
+            <track 
+              kind="captions" 
+              src={section.captions} 
+              srcLang="en" 
+              label="English captions"
+              default
+            />
+          )}
+          <p className="text-gray-300 text-center p-4">
+            Your browser does not support the video tag. 
+            <a 
+              href={section.src} 
+              className="text-blue-400 hover:underline ml-1"
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
+              Download the video instead
+            </a>
+          </p>
+        </video>
+        
+        {/* Motion warning for users with motion sensitivity */}
+        <div className="mt-2 text-xs text-gray-400 text-center">
+          ⚠️ This video contains motion. <button className="text-blue-400 hover:underline">Pause if needed</button>
+        </div>
+      </div>
+      
+      {section.caption && (
+        <p className="text-sm mt-2 text-gray-400 text-center">{section.caption}</p>
+      )}
+      
+      {/* Alternative static description for users who prefer reduced motion */}
+      {section.staticDescription && (
+        <details className="mt-4 p-4 bg-gray-800/50 rounded-lg">
+          <summary className="text-blue-400 cursor-pointer hover:text-blue-300">
+            View text description instead of video
+          </summary>
+          <p className="text-gray-300 mt-2 text-sm leading-relaxed">
+            {section.staticDescription}
+          </p>
+        </details>
+      )}
+    </div>
+  )
 }
 
 // Component to render different section types
@@ -43,6 +103,8 @@ function SectionRenderer({ section, index }: { section: ProjectSection; index: n
             width={800} 
             height={450} 
             className="rounded-lg mx-auto"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            quality={85}
           />
           {section.caption && (
             <p className="text-sm mt-2 text-gray-400 text-center">{section.caption}</p>
@@ -50,24 +112,14 @@ function SectionRenderer({ section, index }: { section: ProjectSection; index: n
         </div>
       )
     case "video":
-      return (
-        <div key={index} className="mb-4">
-          <video controls className="rounded-lg mx-auto w-full max-w-xl">
-            <source src={section.src} type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-          {section.caption && (
-            <p className="text-sm mt-2 text-gray-400 text-center">{section.caption}</p>
-          )}
-        </div>
-      )
+      return <AccessibleVideo section={section} index={index} />
     case "file":
       return (
         <div key={index} className="mt-8 flex justify-center">
           <a 
             href={section.src} 
             download={section.filename} 
-            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full font-semibold shadow-lg transition-colors text-lg"
+            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full font-semibold shadow-lg transition-colors text-lg focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-black"
           >
             {section.description}
           </a>
@@ -110,7 +162,7 @@ export default async function Project({ params }: { params: { slug: string } }) 
             {project.technologies.map((tech, index) => (
               <span 
                 key={index}
-                className="px-3 py-1 bg-blue-600/20 text-blue-300 rounded-full text-sm border border-blue-500/30"
+                className="px-3 py-1 bg-blue-600/20 text-blue-300 rounded-full text-sm border border-blue-500/30 hover:bg-blue-600/30 transition-colors"
               >
                 {tech}
               </span>

@@ -1,166 +1,220 @@
 "use client";
 import React from "react";
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { motion } from 'framer-motion';
-import { scrollAnimationVariants, staggerContainer, hoverLiftVariants, hoverScaleVariants } from '../../lib/utils';
+import { scrollAnimationVariants, staggerContainer, hoverLiftVariants } from '../../lib/utils';
+import { Code2, Gamepad2, Globe, Database, Cpu, Palette } from 'lucide-react';
 
-const technologies = [
+// T-shaped skills model: Deep expertise + Broad knowledge
+const skillCategories = [
   {
-    name: "React",
-    description: "JavaScript Library",
-    icon: (
-      <a>
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1200px-React-icon.svg.png" alt="React" width="32" height="32" />
-      </a>
-    ),
+    title: "Core Expertise (T-Depth)",
+    description: "Deep specialization areas",
+    color: "from-blue-600 to-blue-400",
+    skills: [
+      { name: "Python", level: 95, icon: "🐍", description: "Primary language, 4+ years" },
+      { name: "Unity & C#", level: 90, icon: "🎮", description: "Game development, 3+ years" },
+      { name: "React", level: 85, icon: "⚛️", description: "Modern web development" },
+    ]
   },
   {
-    name: "Figma",
-    description: "Design Tool",
-    icon: (
-       <a>
-        <img src="https://s3-alpha.figma.com/hub/file/1481185752/fa4cd070-6a79-4e1b-b079-8b9b76408595-cover.png" alt="Figma" width="32" height="32" />
-      </a>
-    ),
+    title: "Supporting Technologies (T-Width)",
+    description: "Broad foundational knowledge",
+    color: "from-green-600 to-green-400",
+    skills: [
+      { name: "JavaScript", level: 75, icon: "📜", description: "Frontend & Node.js" },
+      { name: "TypeScript", level: 70, icon: "🔷", description: "Type-safe development" },
+      { name: "Swift", level: 60, icon: "🍎", description: "iOS development" },
+      { name: ".NET", level: 65, icon: "🔧", description: "Enterprise applications" },
+      { name: "PHP", level: 55, icon: "🐘", description: "Backend development" },
+    ]
   },
   {
-    name: "TypeScript",
-    description: "JavaScript but better",
-    icon: (
-      <a>
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Typescript.svg/1200px-Typescript.svg.png" alt="TypeScript" width="32" height="32" />
-      </a>
-    ),
+    title: "Tools & Frameworks",
+    description: "Development ecosystem",
+    color: "from-purple-600 to-purple-400",
+    skills: [
+      { name: "Git", level: 85, icon: "📚", description: "Version control" },
+      { name: "Node.js", level: 75, icon: "🟢", description: "Backend runtime" },
+      { name: "Tailwind CSS", level: 80, icon: "🎨", description: "Utility-first CSS" },
+      { name: "Figma", level: 70, icon: "✏️", description: "UI/UX design" },
+      { name: "Blender", level: 45, icon: "🎲", description: "3D modeling" },
+    ]
   },
   {
-    name: "JavaScript",
-    description: "Programming Language",
-    icon: (
-      <a>
-        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6a/JavaScript-logo.png" alt="JavaScript" width="32" height="32" />
-      </a>
-    ),
-  },
-  {
-    name: "Python",
-    description: "Programming Language",
-    icon: (
-      <a>
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Python.svg/800px-Python.svg.png" alt="Python" width="32" height="32" />
-      </a>
-    ),
-  },
-  {
-    name: "GitHub",
-    description: "Version Control",
-    icon: (
-      <a>
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/GitHub_Invertocat_Logo.svg/250px-GitHub_Invertocat_Logo.svg.png" alt="GitHub" width="32" height="32" />
-      </a>
-    ),
-  },
-  {
-    name: "Jira",
-    description: "Project Management",
-    icon: (
-      <a>
-        <img src="https://play-lh.googleusercontent.com/_AZCbg39DTuk8k3DiPRASr9EwyW058pOfzvAu1DsfN9ygtbOlbuucmXaHJi5ooYbokQX" alt="Jira" width="32" height="32" />
-      </a>
-    ),
-  },
-  {
-    name: "Unity",
-    description: "Game Engine",
-    icon: (
-      <a>
-        <img src="https://avatars.githubusercontent.com/u/426196?s=200&v=4" alt="Unity" width="32" height="32" />
-      </a>
-    ),
-  },
-  {
-    name: ".NET",
-    description: "Framework",
-    icon: (
-      <a>
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Microsoft_.NET_logo.svg/1200px-Microsoft_.NET_logo.svg.png" alt=".NET" width="32" height="32" />
-      </a>
-    ),
-  },
-  {
-    name: "WordPress",
-    description: "CMS Platform",
-    icon: (
-      <a>
-        <img src="https://s.w.org/style/images/about/WordPress-logotype-wmark.png" alt="WordPress" width="32" height="32" />
-      </a>
-    ),
-  },
-  {
-    name: "HTML/CSS",
-    description: "Web Basics",
-    icon: (
-      <a>
-        <img src="https://www.citypng.com/public/uploads/preview/html5-css3-logos-icons-free-png-70175169477179641iwgig0db.png" alt="HTML/CSS" width="32" height="32" />
-      </a>
-    ),
-  },
+    title: "Concepts & Methodologies",
+    description: "Computer science fundamentals",
+    color: "from-yellow-600 to-yellow-400",
+    skills: [
+      { name: "Algorithms & Data Structures", level: 85, icon: "🧮", description: "CS fundamentals" },
+      { name: "Machine Learning", level: 70, icon: "🤖", description: "AI/ML concepts" },
+      { name: "Game AI", level: 80, icon: "🎯", description: "FSM, pathfinding" },
+      { name: "RESTful APIs", level: 75, icon: "🔗", description: "Backend architecture" },
+      { name: "Database Design", level: 65, icon: "🗄️", description: "SQL & NoSQL" },
+    ]
+  }
 ];
 
-const Page = () => {
-  return (
-    <div className="bg-black text-white min-h-screen px-4 py-12">
+const SkillBar = ({ skill, index }: { skill: any, index: number }) => (
+  <motion.div
+    initial={{ opacity: 0, x: -20 }}
+    whileInView={{ opacity: 1, x: 0 }}
+    viewport={{ once: true }}
+    transition={{ delay: index * 0.1 }}
+    className="group"
+  >
+    <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center gap-2">
+        <span className="text-lg" role="img" aria-label={skill.name}>{skill.icon}</span>
+        <h4 className="font-semibold text-white text-sm md:text-base">{skill.name}</h4>
+      </div>
+      <span className="text-gray-300 text-sm font-medium">{skill.level}%</span>
+    </div>
+    <div className="w-full bg-gray-700 rounded-full h-2 mb-1 overflow-hidden">
       <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={staggerContainer}
-      >
-        <motion.h2 
-          className="text-4xl font-bold mb-4 text-center"
-          variants={scrollAnimationVariants}
+        className="h-full bg-gradient-to-r from-current to-current rounded-full"
+        initial={{ width: 0 }}
+        whileInView={{ width: `${skill.level}%` }}
+        viewport={{ once: true }}
+        transition={{ duration: 1, delay: index * 0.1 }}
+      />
+    </div>
+    <p className="text-gray-400 text-xs">{skill.description}</p>
+  </motion.div>
+);
+
+export default function Skills() {
+  return (
+    <div className="min-h-screen overflow-x-hidden">
+      {/* Background */}
+      <div className="fixed inset-0 bg-[url('/tech-background.svg')] min-h-screen bg-cover bg-center -z-10"/>
+      <div className="fixed inset-0 bg-gradient-to-b from-gray-900/80 to-gray-950/90 -z-10" />
+
+      <div className="container mx-auto px-4 py-12">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={staggerContainer}
+          className="text-center mb-12"
         >
-          Current technologies
-        </motion.h2>
-        <motion.p 
-          className="mb-8 text-gray-300 max-w-2xl mx-auto text-center"
-          variants={scrollAnimationVariants}
-        >
-          I'm proficient in a range of modern technologies that empower me to build highly functional solutions. These are some of my main technologies.
-        </motion.p>
-      </motion.div>
-      
-      <motion.div 
-        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.1 }}
-        variants={staggerContainer}
-      >
-        {technologies.map((tech, index) => (
-          <motion.div
-            key={tech.name}
+          <motion.h1 
+            className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4"
             variants={scrollAnimationVariants}
-            whileHover={{ y: -5, scale: 1.02 }}
-            transition={{ duration: 0.3 }}
           >
-            <Card className="flex items-center space-x-4 bg-gray-900 hover:bg-gray-800 transition-all duration-300 hover-lift">
-              <CardHeader className="flex flex-row items-center space-x-4 p-4">
-                <motion.div
-                  whileHover={{ rotate: 360, scale: 1.1 }}
-                  transition={{ duration: 0.6 }}
-                >
-                  {tech.icon}
-                </motion.div>
-                <div>
-                  <CardTitle className="text-lg text-white">{tech.name}</CardTitle>
-                  <CardDescription>{tech.description}</CardDescription>
-                </div>
-              </CardHeader>
-            </Card>
+            Technical Skills
+          </motion.h1>
+          <motion.p 
+            className="text-gray-200 text-lg md:text-xl max-w-3xl mx-auto mb-8"
+            variants={scrollAnimationVariants}
+          >
+            T-shaped expertise: Deep specialization in core technologies with broad knowledge across the development ecosystem
+          </motion.p>
+          
+          {/* Quick overview badges */}
+          <motion.div 
+            className="flex flex-wrap justify-center gap-3 mb-12"
+            variants={staggerContainer}
+          >
+            {["Python", "Unity", "React", "C#", "JavaScript", "TypeScript"].map((tech, index) => (
+              <motion.span
+                key={tech}
+                variants={scrollAnimationVariants}
+                className="px-4 py-2 bg-blue-600/30 text-blue-100 rounded-full text-sm border border-blue-400/50 hover:bg-blue-600/40 transition-colors"
+                whileHover={{ scale: 1.05 }}
+              >
+                {tech}
+              </motion.span>
+            ))}
           </motion.div>
-        ))}
-      </motion.div>
+        </motion.div>
+
+        {/* Skills Categories */}
+        <motion.div 
+          className="grid lg:grid-cols-2 gap-8"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={staggerContainer}
+        >
+          {skillCategories.map((category, categoryIndex) => (
+            <motion.div
+              key={category.title}
+              variants={scrollAnimationVariants}
+              className="group"
+            >
+              <Card className="bg-gray-800/80 backdrop-blur-sm border-gray-600/50 hover:bg-gray-800/90 transition-all duration-300 h-full">
+                <CardHeader className="pb-4">
+                  <div className={`w-full h-1 bg-gradient-to-r ${category.color} rounded-full mb-4`} />
+                  <CardTitle className="text-xl md:text-2xl text-white mb-2">
+                    {category.title}
+                  </CardTitle>
+                  <CardDescription className="text-gray-300 text-sm md:text-base">
+                    {category.description}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {category.skills.map((skill, skillIndex) => (
+                    <SkillBar key={skill.name} skill={skill} index={skillIndex} />
+                  ))}
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Learning Journey */}
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+          variants={staggerContainer}
+          className="mt-16 text-center"
+        >
+          <motion.h2 
+            className="text-3xl md:text-4xl font-bold text-white mb-8"
+            variants={scrollAnimationVariants}
+          >
+            Learning Journey
+          </motion.h2>
+          <motion.div
+            className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto"
+            variants={staggerContainer}
+          >
+            <motion.div
+              variants={scrollAnimationVariants}
+              className="bg-gray-800/60 backdrop-blur-sm rounded-xl p-6 border border-gray-600/50"
+            >
+              <div className="text-4xl mb-4">🎓</div>
+              <h3 className="text-lg font-semibold text-white mb-2">Education</h3>
+              <p className="text-gray-300 text-sm">
+                Class I Computer Science degree focusing on software engineering and algorithm design
+              </p>
+            </motion.div>
+            
+            <motion.div
+              variants={scrollAnimationVariants}
+              className="bg-gray-800/60 backdrop-blur-sm rounded-xl p-6 border border-gray-600/50"
+            >
+              <div className="text-4xl mb-4">💼</div>
+              <h3 className="text-lg font-semibold text-white mb-2">Professional</h3>
+              <p className="text-gray-300 text-sm">
+                Co-founder at Beckohn Digital, building modern web applications and digital experiences
+              </p>
+            </motion.div>
+            
+            <motion.div
+              variants={scrollAnimationVariants}
+              className="bg-gray-800/60 backdrop-blur-sm rounded-xl p-6 border border-gray-600/50"
+            >
+              <div className="text-4xl mb-4">🚀</div>
+              <h3 className="text-lg font-semibold text-white mb-2">Projects</h3>
+              <p className="text-gray-300 text-sm">
+                Game development, AI research, and full-stack web applications across various domains
+              </p>
+            </motion.div>
+          </motion.div>
+        </motion.div>
+      </div>
     </div>
   );
-};
-
-export default Page;
+}

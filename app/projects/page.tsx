@@ -22,7 +22,7 @@ const additionalProjects: ProjectItem[] = [
   {
     slug: "https://github.com/Chickohn/Trading-Bot",
     title: "Day Trading Bot (In Progress)",
-    description: "Day trading bot using the Alpaca API",
+    description: "Problem: Manual trading inefficiency | Role: Solo Developer | Stack: Python, Alpaca API | Outcome: Automated trading system",
     tags: ["Python", "Alpaca API", "Trading"],
     category: "Software Development",
     external: true,
@@ -30,7 +30,7 @@ const additionalProjects: ProjectItem[] = [
   {
     slug: "beckohn-digital",
     title: "Beckohn Digital",
-    description: "Startup web design company building modern, high-impact digital experiences.",
+    description: "Problem: Need modern web presence | Role: Co-founder/Dev | Stack: React, Python | Outcome: Live startup platform",
     tags: ["React", "Python", "UI/UX"],
     category: "Web Development",
     external: true,
@@ -39,7 +39,7 @@ const additionalProjects: ProjectItem[] = [
   {
     slug: "https://github.com/Chickohn/Visual_Robot_Arm",
     title: "Dissertation Project - Visual Robot Arm",
-    description: "Teaching a robotic arm using PandaGym and reinforcement learning to perform chemical synthesis",
+    description: "Problem: Complex robotic learning | Role: Researcher | Stack: Python, RL, PandaGym | Outcome: Chemical synthesis automation",
     tags: ["Python", "Reinforcement Learning", "Robotics"],
     category: "Software Development",
     external: true,
@@ -47,7 +47,7 @@ const additionalProjects: ProjectItem[] = [
   {
     slug: "https://github.com/PeterBeckDev/BeckohnSoftwarePlatform",
     title: "Beckohn Digital Software Platform",
-    description: "Software platform for Beckohn Digital - Click the arrow to view the code on GitHub",
+    description: "Problem: Backend infrastructure | Role: Backend Lead | Stack: Node.js, Python | Outcome: Scalable platform foundation",
     tags: ["Node.js", "Python", "JavaScript"],
     category: "Software Development",
     external: true
@@ -55,7 +55,7 @@ const additionalProjects: ProjectItem[] = [
   {
     slug: "https://github.com/Chickohn/Sports-Analysis",
     title: "Analysis Tool (Offline)",
-    description: "Sports performance analysis platform - Click the arrow to view the code on GitHub",
+    description: "Problem: Sports data insights | Role: Full-stack Dev | Stack: Web Analytics | Outcome: Performance visualization dashboard",
     tags: ["Web", "Analytics", "Data Visualization"],
     category: "Web Development",
     external: true
@@ -63,7 +63,7 @@ const additionalProjects: ProjectItem[] = [
   {
     slug: "browns-road-garage-website",
     title: "Browns Road Garage Website",
-    description: "A website I developed for a local garage",
+    description: "Problem: Local business visibility | Role: Solo Developer | Stack: PHP, WordPress | Outcome: Live customer-facing site",
     tags: ["HTML/CSS", "PHP", "WordPress"],
     category: "Web Development",
     external: true,
@@ -72,7 +72,7 @@ const additionalProjects: ProjectItem[] = [
   {
     slug: "gym-buddy",
     title: "Gym Buddy",
-    description: "Personal fitness tracking and workout planning app",
+    description: "Problem: Fitness tracking complexity | Role: Full-stack | Stack: React, TypeScript, Node.js | Outcome: Personal workout app",
     tags: ["React", "TypeScript", "Node.js"],
     category: "Software Development",
     external: true,
@@ -246,9 +246,19 @@ export default function Projects() {
                             <CardTitle className="text-xl text-white">
                               {project.title}
                             </CardTitle>
-                            <CardDescription className="text-gray-300 mt-2">
-                              {project.description}
-                            </CardDescription>
+                            {/* Structured description */}
+                            <ul className="text-gray-300 text-sm mt-2 space-y-1">
+                              {project.description.split('|').map((segment) => {
+                                const [label, ...rest] = segment.trim().split(':');
+                                const value = rest.join(':').trim();
+                                return (
+                                  <li key={label} className="flex gap-1">
+                                    <span className="font-semibold text-gray-100">{label}:</span>
+                                    <span>{value}</span>
+                                  </li>
+                                );
+                              })}
+                            </ul>
                           </div>
                           <motion.div
                             whileHover={{ scale: 1.2, rotate: 45 }}

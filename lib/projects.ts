@@ -7,6 +7,10 @@ export interface ProjectSection {
   caption?: string;
   filename?: string;
   description?: string;
+  // Video accessibility properties
+  poster?: string; // Video poster image
+  captions?: string; // Video captions file path
+  staticDescription?: string; // Alternative text description for users who prefer reduced motion
 }
 
 export interface Project {
@@ -23,7 +27,7 @@ export const projects: Project[] = [
   {
     id: "3d-asteroids",
     title: "3D Asteroids",
-    description: "A modern take on the classic Asteroids game.",
+    description: "Problem: Classic game modernization | Role: Solo Game Dev | Stack: Unity, C# | Outcome: 3D space shooter with AI enemies",
     category: "Video Games",
     technologies: ["Unity", "C#", "3D Modeling"],
     sections: [
@@ -54,7 +58,7 @@ export const projects: Project[] = [
   {
     id: "swish-master",
     title: "Swish Master",
-    description: "A basketball free throwing game developed using Unity",
+    description: "Problem: Basketball skill training | Role: Game Designer/Dev | Stack: Unity, C#, Blender | Outcome: Physics-based sports game",
     category: "Video Games",
     technologies: ["Unity", "C#", "3D Modeling"],
     sections: [
@@ -66,7 +70,8 @@ export const projects: Project[] = [
         type: "video",
         src: "/swish-master.mp4",
         alt: "Gameplay trailer",
-        caption: "Video starts in the menu where you can change the round lengths and toggle on/off powerups."
+        caption: "Video starts in the menu where you can change the round lengths and toggle on/off powerups.",
+        staticDescription: "The game features a basketball court environment where players can practice free throws. The interface includes customizable round settings and optional power-ups to enhance gameplay. The 3D models were created in Blender, and the physics simulation provides realistic ball movement and shooting mechanics."
       },
       {
         type: "file",
@@ -79,7 +84,7 @@ export const projects: Project[] = [
   {
     id: "route-optimisation",
     title: "Route Optimisation",
-    description: "Advanced algorithm for optimising delivery routes",
+    description: "Problem: Delivery route efficiency | Role: Algorithm Developer | Stack: Python, Genetic Algorithms | Outcome: Smart routing solution",
     category: "Software Development",
     technologies: ["Python", "Genetic Algorithms", "Google Maps API"],
     sections: [
