@@ -20,14 +20,14 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: 'Freddie Kohn – Game-Dev & Full-Stack Engineer',
+  title: 'Freddie Kohn – Portfolio',
   description: 'Freddie Kohn – Web-Development and Full-Stack Engineering portfolio showcasing interactive projects, skills, and contact information.',
   keywords: ['Freddie Kohn', 'Software Engineer', 'Game Developer', 'Computer Science', 'Unity', 'C#', 'React', 'Python', 'Full Stack Developer'],
   authors: [{ name: 'Freddie Kohn' }],
   creator: 'Freddie Kohn',
   openGraph: {
-    title: 'Freddie Kohn – Game-Dev & Full-Stack Engineer',
-    description: 'Passionate Computer Science graduate specializing in game development and software engineering.',
+    title: 'Freddie Kohn – Web-Developer & Full-Stack Engineer',
+    description: 'Passionate Computer Science graduate specializing in web development and software engineering.',
     url: 'https://kohn.me.uk',
     siteName: 'Freddie Kohn Portfolio',
     locale: 'en_GB',
@@ -35,8 +35,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Freddie Kohn – Game-Dev & Full-Stack Engineer',
-    description: 'Passionate Computer Science graduate specializing in game development and software engineering.',
+    title: 'Freddie Kohn – Web-Developer & Full-Stack Engineer',
+    description: 'Passionate Computer Science graduate specializing in web development and software engineering.',
   },
   robots: {
     index: true,
@@ -64,14 +64,14 @@ export default function RootLayout({
     "@type": "Person",
     name: "Freddie Kohn",
     jobTitle: "Software Engineer & Game Developer",
-    description: "Passionate Computer Science graduate specializing in game development and software engineering",
+    description: "Passionate Computer Science graduate specializing in web development and software engineering",
     url: "https://kohn.me.uk",
     image: "https://kohn.me.uk/Profile-Picture-Cropped.jpg",
     sameAs: [
       "https://www.linkedin.com/in/freddie-j-kohn/",
       "https://github.com/Chickohn"
     ],
-    knowsAbout: ["Unity", "C#", "React", "Python", "JavaScript", "Game Development", "Software Engineering"],
+    knowsAbout: ["Web Development", "Front-End Development", "Unity", "C#", "React", "Python", "JavaScript", "Game Development", "Software Engineering"],
     alumniOf: {
       "@type": "EducationalOrganization",
       name: "University"

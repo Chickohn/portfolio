@@ -170,7 +170,7 @@ export default function Home() {
             >
               I'm a passionate Computer Science graduate with a focus on web development and software engineering. 
               My journey in tech has led me to create everything from interactive 3D games to highly responsive front-end applications, 
-              always pushing the boundaries of what's possible.
+              always pushing my capabilities to the next level.
             </motion.p>
             <motion.p 
               className="text-gray-100 text-base md:text-lg leading-relaxed"
@@ -178,7 +178,7 @@ export default function Home() {
               transition={{ duration: 0.3 }}
             >
               I'm currently working as a Web Developer at my startup{' '}
-              <a href="https://beckohn.com/" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 hover:underline transition-colors duration-200">
+              <a href="https://beckohn.com/" target="_blank" rel="noopener noreferrer" className="text-yellow-500 hover:text-yellow-300 hover:underline transition-colors duration-200">
                 Beckohn Digital
               </a>{' '}
               but am always looking for new opportunities to learn and grow.
@@ -207,7 +207,7 @@ export default function Home() {
                 <h3 className="text-xl md:text-2xl font-bold text-white">Education</h3>
               </motion.div>
               <p className="text-gray-100 text-base md:text-lg leading-relaxed mb-2">
-                Class I Bachelors Degree in Computer Science with Software Engineering
+                First Class Bachelors Degree in Computer Science with Software Engineering
               </p>
               <p className="text-sm md:text-base text-gray-400">
                 Graduated July 2024
@@ -256,11 +256,17 @@ export default function Home() {
         >
           <motion.h2 
             id="skills-heading"
-            className="text-3xl md:text-4xl lg:text-5xl font-bold text-white text-center mb-12 md:mb-16"
+            className="text-3xl md:text-4xl lg:text-5xl font-bold text-white text-center mb-4 md:mb-6"
             variants={scrollAnimationVariants}
           >
             Technical Skills
           </motion.h2>
+          <motion.p 
+            className="text-gray-100 text-base md:text-lg text-center mb-4 md:mb-6 max-w-3xl mx-auto"
+            variants={scrollAnimationVariants}
+          >
+            I'm proficient in a wide range of programming languages and technologies, so I have rated my skills based on how confident I am with them. For example, I have been learning Python since I was 12 years old, so I am extremely confident in my Python skills.
+          </motion.p>
           
           <div className="grid md:grid-cols-2 gap-8 md:gap-12">
             {/* Programming Skills */}
