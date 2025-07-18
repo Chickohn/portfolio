@@ -1,5 +1,6 @@
 "use client";
 import Link from 'next/link'
+import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
 import { ArrowUpRight, Gamepad2, Code2 } from 'lucide-react'
 import { motion } from 'framer-motion'
@@ -167,6 +168,17 @@ function getGroupedProjects(): ProjectCategory[] {
 }
 
 export default function Projects() {
+  // Detect mobile width on client
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsMobile(window.innerWidth < 768);
+    }
+  }, []);
+
+  const viewportAmount = isMobile ? 0.05 : 0.3;
+
   return (
     <div className="min-h-screen">
       {/* Background with gradient overlay */}
@@ -198,7 +210,7 @@ export default function Projects() {
           className="space-y-16"
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
+          viewport={{ once: true, amount: viewportAmount }}
           variants={staggerContainer}
         >
           {/* Categories stacked vertically */}
