@@ -21,6 +21,14 @@ interface ProjectItem {
 // Additional projects that are external or don't have detail pages
 const additionalProjects: ProjectItem[] = [
   {
+    slug: "https://github.com/Chickohn/QUBO-Visualisation",
+    title: "QUBO Visualisation",
+    description: "Problem: Slow manual hardcoding of Hamiltonians | Role: Solo Developer | Stack: Python, PennyLane, JAXopt | Outcome: Automated hamiltonian generator and histogram visualisation of QUBO",
+    tags: ["Python", "PennyLane", "JAXopt", "Quantum Computing"],
+    category: "Software Development",
+    external: true,
+  },
+  {
     slug: "https://github.com/Chickohn/Trading-Bot",
     title: "Day Trading Bot (In Progress)",
     description: "Problem: Manual trading inefficiency | Role: Solo Developer | Stack: Python, Alpaca API | Outcome: Automated trading system",
