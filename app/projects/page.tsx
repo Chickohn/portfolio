@@ -1,9 +1,9 @@
 "use client";
 import Link from 'next/link'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
 import { ArrowUpRight, Gamepad2, Code2 } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion, useInView } from 'framer-motion'
 import { scrollAnimationVariants, slideInLeftVariants, slideInRightVariants, staggerContainer, hoverLiftVariants, hoverScaleVariants } from '../../lib/utils'
 import { projects } from '../../lib/projects'
 
@@ -178,14 +178,38 @@ function getGroupedProjects(): ProjectCategory[] {
 export default function Projects() {
   // Detect mobile width on client
   const [isMobile, setIsMobile] = useState(false);
-
+  const [shouldAnimate, setShouldAnimate] = useState(false);
+  const projectsRef = useRef(null);
+  
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setIsMobile(window.innerWidth < 768);
+      
+      // Check if projects section is already in view on mount
+      const checkInView = () => {
+        if (projectsRef.current) {
+          const rect = (projectsRef.current as HTMLElement).getBoundingClientRect();
+          const windowHeight = window.innerHeight;
+          // If element is in viewport (with some margin), animate immediately
+          if (rect.top < windowHeight * 0.8 && rect.bottom > 0) {
+            setShouldAnimate(true);
+          }
+        }
+      };
+      
+      // Check immediately and after a short delay to catch any layout shifts
+      checkInView();
+      const timeout = setTimeout(checkInView, 100);
+      return () => clearTimeout(timeout);
     }
   }, []);
 
-  const viewportAmount = isMobile ? 0.05 : 0.3;
+  // Use a default amount that works for both, will be recalculated on mount
+  const viewportAmount = typeof window !== 'undefined' && window.innerWidth < 768 ? 0.05 : 0.3;
+  const isInView = useInView(projectsRef, { once: true, amount: viewportAmount, margin: "-50px" });
+  
+  // Combine both checks - animate if in view OR if should animate from mount check
+  const animateNow = isInView || shouldAnimate;
 
   return (
     <div className="min-h-screen">
@@ -215,10 +239,10 @@ export default function Projects() {
         </motion.div>
 
         <motion.div 
+          ref={projectsRef}
           className="space-y-16"
           initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: viewportAmount }}
+          animate={animateNow ? "visible" : "hidden"}
           variants={staggerContainer}
         >
           {/* Categories stacked vertically */}
