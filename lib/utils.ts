@@ -1,121 +1,25 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { useEffect, useState } from "react"
 
+// Re-export animation variants for backward compatibility
+export {
+  scrollAnimationVariants,
+  slideInLeftVariants,
+  slideInRightVariants,
+  scaleInVariants,
+  staggerContainer,
+  hoverLiftVariants,
+  hoverScaleVariants
+} from './animations';
+
+/**
+ * Utility function to merge Tailwind CSS classes
+ * @param inputs - Class values to merge
+ * @returns Merged class string
+ */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
-
-// Scroll animation utilities
-export const scrollAnimationVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { 
-    opacity: 1, 
-    y: 0,
-    transition: {
-      duration: 0.6,
-      ease: "easeOut" as const
-    }
-  }
-}
-
-export const slideInLeftVariants = {
-  hidden: { opacity: 0, x: -30 },
-  visible: { 
-    opacity: 1, 
-    x: 0,
-    transition: {
-      duration: 0.6,
-      ease: "easeOut" as const
-    }
-  }
-}
-
-export const slideInRightVariants = {
-  hidden: { opacity: 0, x: 30 },
-  visible: { 
-    opacity: 1, 
-    x: 0,
-    transition: {
-      duration: 0.6,
-      ease: "easeOut" as const
-    }
-  }
-}
-
-export const scaleInVariants = {
-  hidden: { opacity: 0, scale: 0.9 },
-  visible: { 
-    opacity: 1, 
-    scale: 1,
-    transition: {
-      duration: 0.5,
-      ease: "easeOut" as const
-    }
-  }
-}
-
-export const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
-}
-
-// Hover animation variants
-export const hoverLiftVariants = {
-  rest: { 
-    y: 0,
-    transition: { duration: 0.3, ease: "easeOut" as const }
-  },
-  hover: { 
-    y: -5,
-    transition: { duration: 0.3, ease: "easeOut" as const }
-  }
-}
-
-export const hoverScaleVariants = {
-  rest: { 
-    scale: 1,
-    transition: { duration: 0.3, ease: "easeOut" as const }
-  },
-  hover: { 
-    scale: 1.05,
-    transition: { duration: 0.3, ease: "easeOut" as const }
-  }
-}
-
-// Custom hook for scroll animations
-export const useScrollAnimation = (threshold = 0.1) => {
-  const [isInView, setIsInView] = useState(false);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true);
-        }
-      },
-      { threshold }
-    );
-
-    const element = document.querySelector('[data-scroll-animation]');
-    if (element) {
-      observer.observe(element);
-    }
-
-    return () => {
-      if (element) {
-        observer.unobserve(element);
-      }
-    };
-  }, [threshold]);
-
-  return isInView;
-};
 
 // Utility function to check if element is in viewport
 export const isInViewport = (element: Element) => {
@@ -155,21 +59,8 @@ export const throttle = (func: Function, limit: number) => {
   }
 }
 
-// Parallax scroll effect
-export const useParallax = (speed = 0.5) => {
-  const [offset, setOffset] = useState(0);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setOffset(window.pageYOffset * speed);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [speed]);
-
-  return offset;
-};
+// Note: useParallax hook moved to hooks/ directory
+// This export is kept for backward compatibility but should be migrated
 
 // Smooth scroll to element
 export const scrollToElement = (elementId: string, offset = 0) => {

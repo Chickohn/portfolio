@@ -4,7 +4,7 @@ import { Button } from "./ui/button"
 import Link from "next/link"
 import { ArrowRight, Code2, Gamepad2, GraduationCap, Briefcase, Github, Linkedin } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { scrollAnimationVariants, slideInLeftVariants, slideInRightVariants, staggerContainer, hoverLiftVariants, hoverScaleVariants } from '../lib/utils'
+import { scrollAnimationVariants, slideInLeftVariants, slideInRightVariants, staggerContainer, hoverScaleVariants } from '../lib/utils'
 import Image from 'next/image'
 import Nav from './nav';
 
@@ -370,7 +370,7 @@ function HomeContent({ onContactClick }: { onContactClick: () => void }) {
                 { icon: Code2, title: "Development", text: "Full-Stack Engineering", color: "text-green-400" },
                 { icon: Gamepad2, title: "Gaming", text: "Game Development", color: "text-purple-400" },
                 { icon: Briefcase, title: "Experience", text: "Professional Projects", color: "text-yellow-400" }
-              ].map((item, index) => (
+              ].map((item) => (
                 <motion.div 
                   key={item.title}
                   className="bg-gray-800/80 backdrop-blur-sm rounded-xl md:rounded-2xl p-4 md:p-6 border border-gray-600/50"
@@ -415,7 +415,7 @@ function HomeContent({ onContactClick }: { onContactClick: () => void }) {
             className="flex flex-wrap justify-center gap-2 md:gap-4 mb-8 md:mb-12"
             variants={staggerContainer}
           >
-            {['Python', 'Unity', 'C#', 'React', 'JavaScript', 'Swift', '.NET', 'Node.js', 'TypeScript', 'Git'].map((skill, index) => (
+            {['Python', 'Unity', 'C#', 'React', 'JavaScript', 'Swift', '.NET', 'Node.js', 'TypeScript', 'Git'].map((skill) => (
               <motion.span 
                 key={skill}
                 className="px-3 md:px-4 py-1 md:py-2 bg-blue-600/30 text-blue-100 rounded-full text-xs md:text-sm border border-blue-400/50 hover:bg-blue-600/40 transition-colors cursor-default"

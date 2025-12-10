@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 import { getAllProjectIds } from '../lib/projects'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://www.kohn.me.uk' // Your actual domain
+  const baseUrl = 'https://kohn.me.uk'
   
   // Main static pages
   const staticPages = [

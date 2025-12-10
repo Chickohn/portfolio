@@ -110,12 +110,20 @@ export const projects: Project[] = [
   }
 ];
 
-// Helper function to get project by ID
+/**
+ * Gets a project by its ID
+ * @param id - The project ID to search for
+ * @returns The project if found, undefined otherwise
+ */
 export function getProjectById(id: string): Project | undefined {
   return projects.find(project => project.id === id);
 }
 
-// Helper function to get all project IDs (useful for static generation)
+/**
+ * Gets all project IDs
+ * Useful for static generation and sitemap generation
+ * @returns Array of all project IDs
+ */
 export function getAllProjectIds(): string[] {
   return projects.map(project => project.id);
 } 

@@ -1,22 +1,12 @@
 "use client";
 import Link from 'next/link'
 import React, { useState, useEffect, useRef } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
 import { ArrowUpRight, Gamepad2, Code2 } from 'lucide-react'
 import { motion, useInView } from 'framer-motion'
-import { scrollAnimationVariants, slideInLeftVariants, slideInRightVariants, staggerContainer, hoverLiftVariants, hoverScaleVariants } from '../../lib/utils'
+import { scrollAnimationVariants, staggerContainer } from '../../lib/utils'
 import { projects } from '../../lib/projects'
-
-// Type for project items displayed in the listing
-interface ProjectItem {
-  slug: string;
-  title: string;
-  description: string;
-  tags: string[];
-  category: string;
-  external: boolean;
-  link?: string;
-}
+import { ProjectItem, ProjectCategory, CategoryConfig } from '@/types'
 
 // Additional projects that are external or don't have detail pages
 const additionalProjects: ProjectItem[] = [
@@ -103,7 +93,7 @@ const allProjects: ProjectItem[] = [
 ];
 
 // Category configuration with display settings
-const categoryConfig: Record<string, { title: string; description: string; icon: any }> = {
+const categoryConfig: Record<string, CategoryConfig> = {
   "Software Development": {
     title: "Software Development",
     description: "Check out my software engineering projects",
@@ -121,14 +111,6 @@ const categoryConfig: Record<string, { title: string; description: string; icon:
   }
 };
 
-// Type for grouped project categories
-interface ProjectCategory {
-  category: string;
-  title: string;
-  description: string;
-  icon: any;
-  items: ProjectItem[];
-}
 
 // Dynamically group projects by category
 function getGroupedProjects(): ProjectCategory[] {
@@ -161,7 +143,7 @@ function getGroupedProjects(): ProjectCategory[] {
   
   // Add any remaining categories not in the specified order
   Object.keys(grouped).forEach(category => {
-    if (!categoryOrder.includes(category) && grouped[category].length > 0) {
+    if (!categoryOrder.includes(category) && grouped[category] && grouped[category].length > 0) {
       result.push({
         category,
         title: categoryConfig[category]?.title || category,
@@ -176,32 +158,28 @@ function getGroupedProjects(): ProjectCategory[] {
 }
 
 export default function Projects() {
-  // Detect mobile width on client
-  const [isMobile, setIsMobile] = useState(false);
   const [shouldAnimate, setShouldAnimate] = useState(false);
   const projectsRef = useRef(null);
   
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setIsMobile(window.innerWidth < 768);
-      
-      // Check if projects section is already in view on mount
-      const checkInView = () => {
-        if (projectsRef.current) {
-          const rect = (projectsRef.current as HTMLElement).getBoundingClientRect();
-          const windowHeight = window.innerHeight;
-          // If element is in viewport (with some margin), animate immediately
-          if (rect.top < windowHeight * 0.8 && rect.bottom > 0) {
-            setShouldAnimate(true);
-          }
+    if (typeof window === 'undefined') return;
+    
+    // Check if projects section is already in view on mount
+    const checkInView = () => {
+      if (projectsRef.current) {
+        const rect = (projectsRef.current as HTMLElement).getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+        // If element is in viewport (with some margin), animate immediately
+        if (rect.top < windowHeight * 0.8 && rect.bottom > 0) {
+          setShouldAnimate(true);
         }
-      };
-      
-      // Check immediately and after a short delay to catch any layout shifts
-      checkInView();
-      const timeout = setTimeout(checkInView, 100);
-      return () => clearTimeout(timeout);
-    }
+      }
+    };
+    
+    // Check immediately and after a short delay to catch any layout shifts
+    checkInView();
+    const timeout = setTimeout(checkInView, 100);
+    return () => clearTimeout(timeout);
   }, []);
 
   // Use a default amount that works for both, will be recalculated on mount
@@ -246,7 +224,7 @@ export default function Projects() {
           variants={staggerContainer}
         >
           {/* Categories stacked vertically */}
-          {getGroupedProjects().map((category: ProjectCategory, idx: number) => (
+          {getGroupedProjects().map((category: ProjectCategory) => (
             <motion.div
               key={category.category}
               className="space-y-6"
@@ -276,7 +254,7 @@ export default function Projects() {
                 className="grid md:grid-cols-2 gap-6"
                 variants={staggerContainer}
               >
-                {category.items.map((project: ProjectItem, projectIndex: number) => (
+                {category.items.map((project: ProjectItem) => (
                   <motion.div
                     key={project.slug}
                     variants={scrollAnimationVariants}
@@ -343,7 +321,7 @@ export default function Projects() {
                           className="flex flex-wrap gap-2"
                           variants={staggerContainer}
                         >
-                          {project.tags.map((tag: string, tagIndex: number) => (
+                          {project.tags.map((tag: string) => (
                             <motion.span 
                               key={tag}
                               className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm"

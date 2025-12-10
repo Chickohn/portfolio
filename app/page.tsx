@@ -1,12 +1,17 @@
 "use client";
+import { useState } from 'react';
 import { Button } from "../components/ui/button"
 import Link from "next/link"
 import { ArrowRight, Code2, Gamepad2, GraduationCap, Briefcase, Github, Linkedin } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { scrollAnimationVariants, slideInLeftVariants, slideInRightVariants, staggerContainer, hoverLiftVariants, hoverScaleVariants } from '../lib/utils'
+import { motion } from 'framer-motion'
+import { scrollAnimationVariants, slideInLeftVariants, slideInRightVariants, staggerContainer, hoverScaleVariants } from '../lib/utils'
 import Image from 'next/image'
+import ImageLightbox from '../components/image-lightbox'
 
 export default function Home() {
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  
+  const blurDataURL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q==";
   return (
     <>
       <div className="min-h-screen overflow-x-hidden">
@@ -22,27 +27,43 @@ export default function Home() {
           variants={staggerContainer}
           className="max-w-4xl mx-auto"
         >
-          {/* Profile Image */}
+          {/* Profile Image - Interactive Avatar */}
           <motion.div 
             variants={scrollAnimationVariants}
             className="relative mb-8"
           >
-            {/* Static avatar with subtle ring */}
-            <div className="relative w-32 h-32 md:w-36 md:h-36 mx-auto rounded-full ring-4 ring-blue-500 overflow-hidden">
+            <motion.button
+              onClick={() => setIsLightboxOpen(true)}
+              className="relative w-32 h-32 md:w-36 md:h-36 mx-auto rounded-full ring-4 ring-blue-500 overflow-hidden cursor-pointer focus:outline-none focus:ring-4 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-300 group hover:ring-blue-400 hover:shadow-[0_0_20px_rgba(59,130,246,0.5)]"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              aria-label="View full profile picture"
+            >
               <Image
                 src="/Profile-Picture-Cropped.jpg"
                 alt="Freddie Kohn – Software Engineer and Game Developer"
                 fill
-                className="object-cover"
+                className="object-cover transition-transform duration-300 group-hover:scale-110"
                 priority
                 fetchPriority="high"
                 sizes="(max-width: 768px) 128px, 144px"
-                quality={85}
+                quality={90}
+                placeholder="blur"
+                blurDataURL={blurDataURL}
               />
-            </div>
-            
-            {/* Particle animation removed for performance */}
+              {/* Subtle overlay on hover */}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 rounded-full" />
+            </motion.button>
           </motion.div>
+          
+          {/* Image Lightbox */}
+          <ImageLightbox
+            isOpen={isLightboxOpen}
+            onClose={() => setIsLightboxOpen(false)}
+            src="/Profile-Picture-Cropped.jpg"
+            alt="Freddie Kohn – Software Engineer and Game Developer"
+            blurDataURL={blurDataURL}
+          />
 
           <motion.h1 
             className="text-4xl md:text-6xl lg:text-7xl font-extrabold mb-6 tracking-tight"

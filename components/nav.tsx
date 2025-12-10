@@ -1,9 +1,10 @@
 "use client";
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronUp, Menu, X } from 'lucide-react'
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 
 export default function Nav({ onContactClick }: { onContactClick?: () => void }) {
   const [showContact, setShowContact] = useState(false)
@@ -18,11 +19,68 @@ export default function Nav({ onContactClick }: { onContactClick?: () => void })
     return false;
   };
 
+  // Focus trap refs for modals
+  const modalRef = useRef<HTMLDivElement>(null);
+  const firstFocusableRef = useRef<HTMLElement | null>(null);
+  const lastFocusableRef = useRef<HTMLElement | null>(null);
+
   useEffect(() => {
     const handleContactModal = () => setShowContact(true);
     window.addEventListener('openContactModal', handleContactModal);
     return () => window.removeEventListener('openContactModal', handleContactModal);
   }, []);
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts([
+    {
+      key: 'Escape',
+      handler: () => {
+        if (showContact) setShowContact(false);
+        if (isMobileMenuOpen) setIsMobileMenuOpen(false);
+      },
+    },
+  ]);
+
+  // Focus trap for contact modal
+  useEffect(() => {
+    if (!showContact) return;
+    
+    const modal = modalRef.current;
+    if (!modal) return;
+
+    const focusableElements = modal.querySelectorAll(
+      'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    );
+    
+    if (focusableElements.length > 0) {
+      const firstElement = focusableElements[0] as HTMLElement;
+      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+      firstFocusableRef.current = firstElement;
+      lastFocusableRef.current = lastElement;
+      firstElement.focus();
+    }
+
+    const handleTabKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstFocusableRef.current) {
+          e.preventDefault();
+          lastFocusableRef.current?.focus();
+        }
+      } else {
+        if (document.activeElement === lastFocusableRef.current) {
+          e.preventDefault();
+          firstFocusableRef.current?.focus();
+        }
+      }
+    };
+
+    modal.addEventListener('keydown', handleTabKey);
+    return () => {
+      modal.removeEventListener('keydown', handleTabKey);
+    };
+  }, [showContact]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -303,8 +361,12 @@ export default function Nav({ onContactClick }: { onContactClick?: () => void })
             transition={{ duration: 0.3 }}
             className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm"
             onClick={() => setShowContact(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="contact-modal-title"
           >
             <motion.div 
+              ref={modalRef}
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -322,6 +384,7 @@ export default function Nav({ onContactClick }: { onContactClick?: () => void })
                 ×
               </motion.button>
               <motion.h2 
+                id="contact-modal-title"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
@@ -345,19 +408,27 @@ export default function Nav({ onContactClick }: { onContactClick?: () => void })
               >
                 <motion.div 
                   whileHover={{ x: 5 }}
-                  className="flex items-center gap-3"
+                  className="flex items-start gap-3"
                 >
-                  <svg className="w-4 md:w-5 h-4 md:h-5 text-yellow-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 12.3V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4.7M21 7V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v.01M21 7l-9 6-9-6"/></svg>
-                  <span className="font-semibold text-white text-sm md:text-base">Email:</span>
-                  <a href="mailto:freddiej.kohn@gmail.com" className="text-yellow-400 hover:underline text-xs md:text-sm break-all transition-colors duration-200">freddiej.kohn@gmail.com</a>
+                  <svg className="w-4 md:w-5 h-4 md:h-5 text-yellow-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 12.3V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4.7M21 7V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v.01M21 7l-9 6-9-6"/></svg>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                      <span className="font-semibold text-white text-sm md:text-base whitespace-nowrap">Email:</span>
+                      <a href="mailto:freddiej.kohn@gmail.com" className="text-yellow-400 hover:underline text-xs md:text-sm break-all transition-colors duration-200">freddiej.kohn@gmail.com</a>
+                    </div>
+                  </div>
                 </motion.div>
                 <motion.div 
                   whileHover={{ x: 5 }}
-                  className="flex items-center gap-3"
+                  className="flex items-start gap-3"
                 >
-                  <svg className="w-4 md:w-5 h-4 md:h-5 text-blue-400 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.76 0-5 2.24-5 5v14c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24 5-5v-14c0-2.76-2.24-5-5-5zm-11 19h-3v-9h3v9zm-1.5-10.29c-.97 0-1.75-.79-1.75-1.75s.78-1.75 1.75-1.75 1.75.79 1.75 1.75-.78 1.75-1.75 1.75zm15.5 10.29h-3v-4.5c0-1.08-.02-2.47-1.5-2.47-1.5 0-1.73 1.17-1.73 2.39v4.58h-3v-9h2.89v1.23h.04c.4-.75 1.37-1.54 2.82-1.54 3.01 0 3.57 1.98 3.57 4.56v4.75z"/></svg>
-                  <span className="font-semibold text-white text-sm md:text-base">LinkedIn:</span>
-                  <a href="https://www.linkedin.com/in/freddie-j-kohn/" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline text-sm transition-colors duration-200">@freddie-j-kohn</a>
+                  <svg className="w-4 md:w-5 h-4 md:h-5 text-blue-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.76 0-5 2.24-5 5v14c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24 5-5v-14c0-2.76-2.24-5-5-5zm-11 19h-3v-9h3v9zm-1.5-10.29c-.97 0-1.75-.79-1.75-1.75s.78-1.75 1.75-1.75 1.75.79 1.75 1.75-.78 1.75-1.75 1.75zm15.5 10.29h-3v-4.5c0-1.08-.02-2.47-1.5-2.47-1.5 0-1.73 1.17-1.73 2.39v4.58h-3v-9h2.89v1.23h.04c.4-.75 1.37-1.54 2.82-1.54 3.01 0 3.57 1.98 3.57 4.56v4.75z"/></svg>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                      <span className="font-semibold text-white text-sm md:text-base whitespace-nowrap">LinkedIn:</span>
+                      <a href="https://www.linkedin.com/in/freddie-j-kohn/" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline text-sm transition-colors duration-200">@freddie-j-kohn</a>
+                    </div>
+                  </div>
                 </motion.div>
               </motion.div>
               <motion.div 

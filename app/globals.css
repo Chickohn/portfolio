@@ -147,6 +147,19 @@ body {
     color: #e5e7eb; /* Improved from gray-300 to gray-200 equivalent */
   }
 
+  /* Ensure minimum touch target size for mobile (44x44px) */
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Enhanced focus visibility for keyboard navigation */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
   /* Motion reduction for users who prefer reduced motion */
   @media (prefers-reduced-motion: reduce) {
     .motion-reduce-static {

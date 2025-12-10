@@ -2,11 +2,16 @@
 import React from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { motion } from 'framer-motion';
-import { scrollAnimationVariants, staggerContainer, hoverLiftVariants } from '../../lib/utils';
-import { Code2, Gamepad2, Globe, Database, Cpu, Palette } from 'lucide-react';
+import { scrollAnimationVariants, staggerContainer } from '../../lib/utils';
+import { Skill, SkillCategory } from '@/types';
+
+interface SkillBarProps {
+  skill: Skill;
+  index: number;
+}
 
 // T-shaped skills model: Deep expertise + Broad knowledge
-const skillCategories = [
+const skillCategories: SkillCategory[] = [
   {
     title: "Core Expertise (T-Depth)",
     description: "Deep specialization areas",
@@ -55,7 +60,12 @@ const skillCategories = [
   }
 ];
 
-const SkillBar = ({ skill, index }: { skill: any, index: number }) => {
+interface SkillBarProps {
+  skill: Skill;
+  index: number;
+}
+
+const SkillBar = ({ skill, index }: SkillBarProps) => {
   // Convert percentage to experience level
   const getExperienceLevel = (level: number) => {
     if (level >= 90) return { text: "Expert", years: "4+ yrs" };
@@ -68,23 +78,23 @@ const SkillBar = ({ skill, index }: { skill: any, index: number }) => {
   const experience = getExperienceLevel(skill.level);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.1 }}
-      className="group"
-    >
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <span className="text-lg" role="img" aria-label={skill.name}>{skill.icon}</span>
-          <h4 className="font-semibold text-white text-sm md:text-base">{skill.name}</h4>
-        </div>
+  <motion.div
+    initial={{ opacity: 0, x: -20 }}
+    whileInView={{ opacity: 1, x: 0 }}
+    viewport={{ once: true }}
+    transition={{ delay: index * 0.1 }}
+    className="group"
+  >
+    <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center gap-2">
+        <span className="text-lg" role="img" aria-label={skill.name}>{skill.icon}</span>
+        <h4 className="font-semibold text-white text-sm md:text-base">{skill.name}</h4>
+      </div>
         <span className="text-gray-300 text-sm font-medium">
           {experience.text}
           <span className="sr-only"> ({experience.years} experience)</span>
         </span>
-      </div>
+    </div>
       <div 
         className="w-full bg-gray-700 rounded-full h-2 mb-1 overflow-hidden"
         role="progressbar"
@@ -93,17 +103,17 @@ const SkillBar = ({ skill, index }: { skill: any, index: number }) => {
         aria-valuemax={100}
         aria-valuenow={skill.level}
       >
-        <motion.div
-          className="h-full bg-gradient-to-r from-current to-current rounded-full"
-          initial={{ width: 0 }}
-          whileInView={{ width: `${skill.level}%` }}
-          viewport={{ once: true }}
-          transition={{ duration: 1, delay: index * 0.1 }}
-        />
-      </div>
-      <p className="text-gray-400 text-xs">{skill.description}</p>
-    </motion.div>
-  );
+      <motion.div
+        className="h-full bg-gradient-to-r from-current to-current rounded-full"
+        initial={{ width: 0 }}
+        whileInView={{ width: `${skill.level}%` }}
+        viewport={{ once: true }}
+        transition={{ duration: 1, delay: index * 0.1 }}
+      />
+    </div>
+    <p className="text-gray-400 text-xs">{skill.description}</p>
+  </motion.div>
+);
 };
 
 export default function Skills() {
@@ -138,7 +148,7 @@ export default function Skills() {
             className="flex flex-wrap justify-center gap-3 mb-12"
             variants={staggerContainer}
           >
-            {["Python", "Unity", "React", "C#", "JavaScript", "TypeScript"].map((tech, index) => (
+            {["Python", "Unity", "React", "C#", "JavaScript", "TypeScript"].map((tech) => (
               <motion.span
                 key={tech}
                 variants={scrollAnimationVariants}
@@ -159,7 +169,7 @@ export default function Skills() {
           viewport={{ once: true, amount: 0.2 }}
           variants={staggerContainer}
         >
-          {skillCategories.map((category, categoryIndex) => (
+          {skillCategories.map((category) => (
             <motion.div
               key={category.title}
               variants={scrollAnimationVariants}
