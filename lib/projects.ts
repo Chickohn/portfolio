@@ -1,6 +1,6 @@
 // Project type definitions
 export interface ProjectSection {
-  type: 'text' | 'image' | 'video' | 'file';
+  type: 'text' | 'image' | 'video' | 'file' | 'game';
   content?: string;
   src?: string;
   alt?: string;
@@ -11,6 +11,8 @@ export interface ProjectSection {
   poster?: string; // Video poster image
   captions?: string; // Video captions file path
   staticDescription?: string; // Alternative text description for users who prefer reduced motion
+  // Game properties
+  gameComponent?: string; // Name of the game component to render (e.g., 'snake')
 }
 
 export interface Project {
@@ -105,6 +107,27 @@ export const projects: Project[] = [
         src: "/route-optimiser.zip",
         filename: "Route-Optimiser",
         description: "Download Zip"
+      }
+    ]
+  },
+  {
+    id: "snake",
+    title: "Snake",
+    description: "Problem: Classic game recreation | Role: Solo Developer | Stack: React, TypeScript, Canvas API | Outcome: Playable browser-based Snake game",
+    category: "Video Games",
+    technologies: ["React", "TypeScript", "Canvas API"],
+    sections: [
+      {
+        type: "text",
+        content: "A modern recreation of the classic Snake game built with React and TypeScript. The game features smooth canvas-based rendering, responsive controls, and persistent high score tracking using localStorage. The implementation uses refs to optimize performance by avoiding unnecessary re-renders during the game loop."
+      },
+      {
+        type: "text",
+        content: "The game includes wrap-around walls, allowing the snake to pass through screen edges, and features a fixed timestep movement system for consistent gameplay. Players can pause/resume the game and restart at any time. The high score is automatically saved and persists across browser sessions."
+      },
+      {
+        type: "game",
+        gameComponent: "snake"
       }
     ]
   }

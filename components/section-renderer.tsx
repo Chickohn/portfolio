@@ -1,6 +1,6 @@
 /**
  * Section Renderer Component
- * Renders different types of project sections (text, image, video, file)
+ * Renders different types of project sections (text, image, video, file, game)
  * Handles all project content types with appropriate components
  */
 
@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { ProjectSection } from '@/lib/projects';
 import AccessibleVideo from './accessible-video';
 import { renderTextWithLinks } from '@/lib/parsing';
+import SnakeGame from './snake-game';
 
 interface SectionRendererProps {
   /** Project section to render */
@@ -69,6 +70,16 @@ export default function SectionRenderer({ section, index }: SectionRendererProps
           </a>
         </div>
       );
+    case "game":
+      // Render game component based on gameComponent property
+      if (section.gameComponent === "snake") {
+        return (
+          <div key={index} className="mb-8 flex justify-center">
+            <SnakeGame />
+          </div>
+        );
+      }
+      return null;
     default:
       return null;
   }
