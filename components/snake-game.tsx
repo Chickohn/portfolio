@@ -169,26 +169,29 @@ export default function SnakeGame() {
     
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+    
+    // Type assertion: we've already verified ctx is not null
+    const context = ctx as CanvasRenderingContext2D;
 
     function drawCell(x: number, y: number, fill: string) {
-      ctx.fillStyle = fill;
-      ctx.fillRect(x * CELL, y * CELL, CELL, CELL);
+      context.fillStyle = fill;
+      context.fillRect(x * CELL, y * CELL, CELL, CELL);
     }
 
     function drawGrid() {
-      ctx.strokeStyle = colors.grid;
-      ctx.lineWidth = 1;
+      context.strokeStyle = colors.grid;
+      context.lineWidth = 1;
       for (let x = 0; x <= WIDTH; x += CELL) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, HEIGHT);
-        ctx.stroke();
+        context.beginPath();
+        context.moveTo(x, 0);
+        context.lineTo(x, HEIGHT);
+        context.stroke();
       }
       for (let y = 0; y <= HEIGHT; y += CELL) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(WIDTH, y);
-        ctx.stroke();
+        context.beginPath();
+        context.moveTo(0, y);
+        context.lineTo(WIDTH, y);
+        context.stroke();
       }
     }
 
@@ -241,8 +244,8 @@ export default function SnakeGame() {
       }
 
       // --- Render ---
-      ctx.fillStyle = colors.bg;
-      ctx.fillRect(0, 0, WIDTH, HEIGHT);
+      context.fillStyle = colors.bg;
+      context.fillRect(0, 0, WIDTH, HEIGHT);
 
       drawGrid();
 
@@ -256,36 +259,36 @@ export default function SnakeGame() {
       }
 
       // overlay text
-      ctx.fillStyle = colors.text;
-      ctx.font = "20px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-      ctx.fillText(`Score: ${ui.score}   High: ${ui.highScore}`, 10, 26);
+      context.fillStyle = colors.text;
+      context.font = "20px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+      context.fillText(`Score: ${ui.score}   High: ${ui.highScore}`, 10, 26);
 
       if (g.paused && g.alive) {
-        ctx.fillStyle = colors.text;
-        ctx.font = "28px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+        context.fillStyle = colors.text;
+        context.font = "28px system-ui, -apple-system, Segoe UI, Roboto, Arial";
         const msg = "Paused";
-        const w = ctx.measureText(msg).width;
-        ctx.fillText(msg, (WIDTH - w) / 2, HEIGHT / 2 - 10);
+        const w = context.measureText(msg).width;
+        context.fillText(msg, (WIDTH - w) / 2, HEIGHT / 2 - 10);
 
-        ctx.fillStyle = colors.subtext;
-        ctx.font = "18px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+        context.fillStyle = colors.subtext;
+        context.font = "18px system-ui, -apple-system, Segoe UI, Roboto, Arial";
         const msg2 = "Press P to resume";
-        const w2 = ctx.measureText(msg2).width;
-        ctx.fillText(msg2, (WIDTH - w2) / 2, HEIGHT / 2 + 20);
+        const w2 = context.measureText(msg2).width;
+        context.fillText(msg2, (WIDTH - w2) / 2, HEIGHT / 2 + 20);
       }
 
       if (!g.alive) {
-        ctx.fillStyle = colors.text;
-        ctx.font = "28px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+        context.fillStyle = colors.text;
+        context.font = "28px system-ui, -apple-system, Segoe UI, Roboto, Arial";
         const msg = "Game Over";
-        const w = ctx.measureText(msg).width;
-        ctx.fillText(msg, (WIDTH - w) / 2, HEIGHT / 2 - 10);
+        const w = context.measureText(msg).width;
+        context.fillText(msg, (WIDTH - w) / 2, HEIGHT / 2 - 10);
 
-        ctx.fillStyle = colors.subtext;
-        ctx.font = "18px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+        context.fillStyle = colors.subtext;
+        context.font = "18px system-ui, -apple-system, Segoe UI, Roboto, Arial";
         const msg2 = "Press R to restart";
-        const w2 = ctx.measureText(msg2).width;
-        ctx.fillText(msg2, (WIDTH - w2) / 2, HEIGHT / 2 + 20);
+        const w2 = context.measureText(msg2).width;
+        context.fillText(msg2, (WIDTH - w2) / 2, HEIGHT / 2 + 20);
       }
 
       requestAnimationFrame(step);
