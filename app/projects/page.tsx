@@ -66,7 +66,7 @@ const additionalProjects: ProjectItem[] = [
     tags: ["HTML/CSS", "PHP", "WordPress"],
     category: "Web Development",
     external: true,
-    link: "https://www.brownsrdgaragesurbiton.co.uk"
+    link: "https://www.brownsroadgarage.co.uk"
   },
   {
     slug: "gym-buddy",
