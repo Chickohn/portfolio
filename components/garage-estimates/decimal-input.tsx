@@ -49,10 +49,9 @@ export const DecimalInput = React.forwardRef<HTMLInputElement, DecimalInputProps
       props.onFocus?.(e);
     };
 
-    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const handleBlur = () => {
       commit();
       onBlur?.();
-      props.onBlur?.(e);
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
