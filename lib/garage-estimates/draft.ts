@@ -59,12 +59,23 @@ const toVatRate = (value: unknown): VatRate => {
   return 20;
 };
 
+/** Accepts dd-mm-yyyy (1–2 digit d/m) or legacy yyyy-mm-dd; returns dd-mm-yyyy */
 const toIssueDate = (value: unknown, fallback: string): string => {
   if (typeof value !== "string") {
     return fallback;
   }
 
-  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : fallback;
+  const trimmed = value.trim();
+  const ddmmyyyyMatch = trimmed.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+  if (ddmmyyyyMatch) {
+    const [, d, m, y] = ddmmyyyyMatch;
+    return `${d.padStart(2, "0")}-${m.padStart(2, "0")}-${y}`;
+  }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    const [y, m, d] = trimmed.split("-");
+    return `${d}-${m}-${y}`;
+  }
+  return fallback;
 };
 
 const normalizeCompanyProfile = (
@@ -184,6 +195,10 @@ export const normalizeGarageDraft = (input: unknown): GarageEstimateDraft => {
       ),
     },
     notesTerms: toStringValue(input.notesTerms, fallback.notesTerms),
+    includeDocumentMeta:
+      typeof input.includeDocumentMeta === "boolean"
+        ? input.includeDocumentMeta
+        : fallback.includeDocumentMeta,
   };
 };
 

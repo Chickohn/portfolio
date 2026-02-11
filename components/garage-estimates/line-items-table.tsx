@@ -2,6 +2,7 @@
 
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DecimalInput } from "@/components/garage-estimates/decimal-input";
 import { Input } from "@/components/ui/input";
 import { calculateLineItem } from "@/lib/garage-estimates/calculations";
 import { formatCurrency } from "@/lib/garage-estimates/format";
@@ -38,10 +39,10 @@ export function LineItemsTable({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-slate-900">Line Items</h2>
-        <Button type="button" onClick={onAddLineItem} className="gap-2" aria-label="Add line item">
+        <h2 className="text-xl font-semibold text-slate-900">Items</h2>
+        <Button type="button" onClick={onAddLineItem} className="gap-2" aria-label="Add items">
           <Plus className="h-4 w-4" />
-          Add Line Item
+          Add Items
         </Button>
       </div>
 
@@ -110,7 +111,7 @@ export function LineItemsTable({
                       id={`qty-${lineItem.id}`}
                       type="number"
                       min={0}
-                      step="0.01"
+                      step={1}
                       value={lineItem.qty}
                       onChange={(event) =>
                         onChangeLineItem(lineItem.id, { qty: parseNumber(event.target.value) })
@@ -126,18 +127,13 @@ export function LineItemsTable({
                     <label htmlFor={`rate-${lineItem.id}`} className="sr-only">
                       Rate
                     </label>
-                    <Input
+                    <DecimalInput
                       id={`rate-${lineItem.id}`}
-                      type="number"
-                      min={0}
-                      step="0.01"
                       value={lineItem.rate}
-                      onChange={(event) =>
-                        onChangeLineItem(lineItem.id, { rate: parseNumber(event.target.value) })
-                      }
+                      onChange={(rate) => onChangeLineItem(lineItem.id, { rate })}
                       onBlur={() => onClampLineItem(lineItem.id)}
                       aria-invalid={Boolean(errors.rate)}
-                      className="h-10 min-w-[120px]"
+                      className="h-10 min-w-[120px] rounded-md border border-slate-300 bg-white text-slate-900 shadow-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
                     />
                     {errors.rate ? <p className="mt-1 text-xs text-red-600">{errors.rate}</p> : null}
                   </td>
@@ -167,21 +163,16 @@ export function LineItemsTable({
                       <label htmlFor={`discount-value-${lineItem.id}`} className="sr-only">
                         Discount value
                       </label>
-                      <Input
+                      <DecimalInput
                         id={`discount-value-${lineItem.id}`}
-                        type="number"
-                        min={0}
-                        step="0.01"
                         value={lineItem.discountValue}
-                        onChange={(event) =>
-                          onChangeLineItem(lineItem.id, {
-                            discountValue: parseNumber(event.target.value),
-                          })
+                        onChange={(discountValue) =>
+                          onChangeLineItem(lineItem.id, { discountValue })
                         }
                         onBlur={() => onClampLineItem(lineItem.id)}
                         aria-invalid={Boolean(errors.discountValue)}
                         aria-label="Discount value"
-                        className="h-10 min-w-[120px]"
+                        className="h-10 min-w-[120px] rounded-md border border-slate-300 bg-white text-slate-900 shadow-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
                       />
                     </div>
                     {errors.discountValue ? (

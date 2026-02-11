@@ -1,7 +1,7 @@
 "use client";
 
+import { DecimalInput } from "@/components/garage-estimates/decimal-input";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { formatCurrency } from "@/lib/garage-estimates/format";
 import { TotalsComputation } from "@/lib/garage-estimates/types";
 
@@ -13,15 +13,6 @@ interface TotalsPanelProps {
   onShippingBlur: () => void;
 }
 
-const parseNumber = (value: string): number => {
-  if (value.trim() === "") {
-    return 0;
-  }
-
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : 0;
-};
-
 export function TotalsPanel({
   totals,
   shipping,
@@ -30,7 +21,7 @@ export function TotalsPanel({
   onShippingBlur,
 }: TotalsPanelProps) {
   return (
-    <aside className="rounded-xl border border-slate-200 bg-white p-5 text-slate-900 shadow-sm lg:sticky lg:top-24">
+    <aside className="rounded-xl border border-slate-200 bg-white p-5 text-slate-900 shadow-sm">
       <h2 className="text-lg font-semibold">Totals</h2>
       <p className="mt-1 text-sm text-slate-500">
         Shipping is treated as non-VAT.
@@ -48,16 +39,13 @@ export function TotalsPanel({
 
         <div className="space-y-2 pt-1">
           <Label htmlFor="shipping">Shipping</Label>
-          <Input
+          <DecimalInput
             id="shipping"
-            type="number"
-            min={0}
-            step="0.01"
             value={shipping}
-            onChange={(event) => onShippingChange(parseNumber(event.target.value))}
+            onChange={onShippingChange}
             onBlur={onShippingBlur}
             aria-invalid={Boolean(shippingError)}
-            className="h-10"
+            className="h-10 rounded-md border border-slate-300 bg-white text-slate-900 shadow-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
           />
           {shippingError ? <p className="text-xs text-red-600">{shippingError}</p> : null}
         </div>

@@ -261,57 +261,63 @@ const drawDocumentHeader = (
     leftY -= 11;
   });
 
-  const rightX = PAGE_WIDTH - MARGIN;
-  let rightY = PAGE_HEIGHT - MARGIN;
+  let bottomY = leftY;
 
-  drawRightAlignedText(
-    page,
-    `${draft.documentMeta.docType}`,
-    boldFont,
-    16,
-    rightX,
-    rightY - 12
-  );
+  if (draft.includeDocumentMeta) {
+    const rightX = PAGE_WIDTH - MARGIN;
+    let rightY = PAGE_HEIGHT - MARGIN;
 
-  rightY -= 34;
-
-  drawRightAlignedText(
-    page,
-    `No: ${buildDocNumber(draft)}`,
-    boldFont,
-    12,
-    rightX,
-    rightY
-  );
-
-  rightY -= 16;
-
-  drawRightAlignedText(
-    page,
-    `Date: ${draft.documentMeta.issueDate}`,
-    font,
-    10,
-    rightX,
-    rightY,
-    MUTED_TEXT
-  );
-
-  rightY -= 12;
-
-  if (draft.documentMeta.reference) {
     drawRightAlignedText(
       page,
-      `Ref: ${draft.documentMeta.reference}`,
+      `${draft.documentMeta.docType}`,
+      boldFont,
+      16,
+      rightX,
+      rightY - 12
+    );
+
+    rightY -= 34;
+
+    drawRightAlignedText(
+      page,
+      `No: ${buildDocNumber(draft)}`,
+      boldFont,
+      12,
+      rightX,
+      rightY
+    );
+
+    rightY -= 16;
+
+    drawRightAlignedText(
+      page,
+      `Date: ${draft.documentMeta.issueDate}`,
       font,
       10,
       rightX,
       rightY,
       MUTED_TEXT
     );
+
     rightY -= 12;
+
+    if (draft.documentMeta.reference) {
+      drawRightAlignedText(
+        page,
+        `Ref: ${draft.documentMeta.reference}`,
+        font,
+        10,
+        rightX,
+        rightY,
+        MUTED_TEXT
+      );
+      rightY -= 12;
+    }
+
+    bottomY = Math.min(leftY, rightY);
   }
 
-  return Math.min(leftY, rightY) - 16;
+  return bottomY - 16;
 };
 
 const drawTableHeader = (
@@ -508,7 +514,9 @@ const startContinuationPage = (
   boldFont: PDFFont
 ): PageCursor => {
   const page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
-  const title = `${draft.documentMeta.docType} ${buildDocNumber(draft)} (continued)`;
+  const title = draft.includeDocumentMeta
+    ? `${draft.documentMeta.docType} ${buildDocNumber(draft)} (continued)`
+    : "Continued";
 
   page.drawText(title, {
     x: MARGIN,
@@ -518,15 +526,17 @@ const startContinuationPage = (
     color: TEXT_COLOR,
   });
 
-  drawRightAlignedText(
-    page,
-    draft.documentMeta.issueDate,
-    font,
-    10,
-    PAGE_WIDTH - MARGIN,
-    PAGE_HEIGHT - MARGIN - 12,
-    MUTED_TEXT
-  );
+  if (draft.includeDocumentMeta) {
+    drawRightAlignedText(
+      page,
+      draft.documentMeta.issueDate,
+      font,
+      10,
+      PAGE_WIDTH - MARGIN,
+      PAGE_HEIGHT - MARGIN - 12,
+      MUTED_TEXT
+    );
+  }
 
   return {
     page,
@@ -699,8 +709,12 @@ export const generateGaragePdf = async (
     `Make / Model: ${draft.vehicleDetails.makeModel || "-"}`,
     `Registration: ${draft.vehicleDetails.registration || "-"}`,
     `Mileage: ${draft.vehicleDetails.mileage || "-"}`,
-    `Reference: ${draft.documentMeta.reference || "-"}`,
-    `Date: ${draft.documentMeta.issueDate}`,
+    ...(draft.includeDocumentMeta
+      ? [
+          `Reference: ${draft.documentMeta.reference || "-"}`,
+          `Date: ${draft.documentMeta.issueDate}`,
+        ]
+      : []),
   ];
 
   const leftBottom = drawSectionBlock(

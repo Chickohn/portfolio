@@ -26,7 +26,11 @@ import {
 import { normalizeGarageDraft, parseDraftJson } from "@/lib/garage-estimates/draft";
 import {
   buildPdfFilename,
+  formatDateToDDMMYYYY,
   fromAddressLines,
+  getTodayDDMMYYYY,
+  isValidDDMMYYYY,
+  normalizeDDMMYYYY,
   toAddressLines,
 } from "@/lib/garage-estimates/format";
 import { generateGaragePdf } from "@/lib/garage-estimates/pdf";
@@ -387,7 +391,7 @@ export function GarageEstimateTool() {
             <Button
               type="button"
               variant="outline"
-              className="gap-2 border-slate-500 text-slate-100 hover:bg-slate-800 hover:text-white"
+              className="gap-2 border-slate-400 bg-slate-800/80 text-slate-100 hover:border-slate-300 hover:bg-slate-700 hover:text-white"
               onClick={handleClearDraft}
             >
               <Trash2 className="h-4 w-4" />
@@ -427,7 +431,7 @@ export function GarageEstimateTool() {
         ) : null}
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="space-y-6">
+          <div className="space-y-6 lg:min-h-0">
             <Card className="border-slate-200 bg-white text-slate-900">
               <CardHeader>
                 <CardTitle>Company Profile</CardTitle>
@@ -657,10 +661,29 @@ export function GarageEstimateTool() {
               </Card>
 
               <Card className="border-slate-200 bg-white text-slate-900">
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle>Document Meta</CardTitle>
+                  <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={draft.includeDocumentMeta}
+                      onChange={(e) =>
+                        updateDraft((prev) => ({
+                          ...prev,
+                          includeDocumentMeta: e.target.checked,
+                        }))
+                      }
+                      className="h-4 w-4 rounded border-slate-300"
+                      aria-label="Include document meta on PDF"
+                    />
+                    Include on PDF
+                  </label>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent
+                  className={`space-y-4 transition-opacity ${
+                    draft.includeDocumentMeta ? "opacity-100" : "pointer-events-none opacity-50"
+                  }`}
+                >
                   <div className="space-y-2">
                     <Label htmlFor="doc-type">Document Type</Label>
                     <select
@@ -671,7 +694,8 @@ export function GarageEstimateTool() {
                           docType: event.target.value as GarageEstimateDraft["documentMeta"]["docType"],
                         })
                       }
-                      className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm shadow-sm outline-none transition focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
+                      disabled={!draft.includeDocumentMeta}
+                      className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm shadow-sm outline-none transition focus:border-slate-500 focus:ring-1 focus:ring-slate-500 disabled:cursor-not-allowed"
                     >
                       <option value="Estimate">Estimate</option>
                       <option value="Invoice">Invoice</option>
@@ -689,7 +713,9 @@ export function GarageEstimateTool() {
                             docNumberPrefix: event.target.value.toUpperCase(),
                           })
                         }
-                        placeholder="NYC"
+                        placeholder="ABC"
+                        disabled={!draft.includeDocumentMeta}
+                        className="disabled:cursor-not-allowed"
                       />
                     </div>
 
@@ -714,6 +740,8 @@ export function GarageEstimateTool() {
                             ),
                           })
                         }
+                        disabled={!draft.includeDocumentMeta}
+                        className="disabled:cursor-not-allowed"
                       />
                     </div>
                   </div>
@@ -722,11 +750,26 @@ export function GarageEstimateTool() {
                     <Label htmlFor="issue-date">Issue Date</Label>
                     <Input
                       id="issue-date"
-                      type="date"
+                      type="text"
                       value={draft.documentMeta.issueDate}
                       onChange={(event) =>
                         updateDocumentMeta({ issueDate: event.target.value })
                       }
+                      onBlur={() => {
+                        const current = draft.documentMeta.issueDate.trim();
+                        if (!current) {
+                          updateDocumentMeta({ issueDate: getTodayDDMMYYYY() });
+                          return;
+                        }
+                        if (!isValidDDMMYYYY(current)) {
+                          updateDocumentMeta({ issueDate: formatDateToDDMMYYYY(new Date()) });
+                        } else {
+                          updateDocumentMeta({ issueDate: normalizeDDMMYYYY(current) });
+                        }
+                      }}
+                      placeholder="dd-mm-yyyy"
+                      disabled={!draft.includeDocumentMeta}
+                      className="disabled:cursor-not-allowed"
                     />
                   </div>
 
@@ -739,6 +782,8 @@ export function GarageEstimateTool() {
                         updateDocumentMeta({ reference: event.target.value })
                       }
                       placeholder="MOT + front brakes"
+                      disabled={!draft.includeDocumentMeta}
+                      className="disabled:cursor-not-allowed"
                     />
                   </div>
 
@@ -815,21 +860,23 @@ export function GarageEstimateTool() {
             </div>
           </div>
 
-          <TotalsPanel
-            totals={totals}
-            shipping={draft.charges.shipping}
-            shippingError={shippingError}
-            onShippingChange={(value) =>
-              updateDraft((previous) => ({
-                ...previous,
-                charges: {
-                  ...previous.charges,
-                  shipping: value,
-                },
-              }))
-            }
-            onShippingBlur={onClampShipping}
-          />
+          <div className="lg:sticky lg:top-20 lg:self-start">
+            <TotalsPanel
+              totals={totals}
+              shipping={draft.charges.shipping}
+              shippingError={shippingError}
+              onShippingChange={(value) =>
+                updateDraft((previous) => ({
+                  ...previous,
+                  charges: {
+                    ...previous.charges,
+                    shipping: value,
+                  },
+                }))
+              }
+              onShippingBlur={onClampShipping}
+            />
+          </div>
         </div>
       </div>
     </div>

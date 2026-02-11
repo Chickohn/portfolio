@@ -1,3 +1,4 @@
+import { formatDateToDDMMYYYY } from "./format";
 import { GarageEstimateDraft, LineItem } from "./types";
 
 export const GARAGE_DRAFT_STORAGE_KEY = "garageEstimatesDraft:v1";
@@ -43,12 +44,13 @@ export const createDefaultDraft = (): GarageEstimateDraft => ({
   },
   documentMeta: {
     docType: "Estimate",
-    docNumberPrefix: "NYC",
+    docNumberPrefix: "",
     docNumber: 1001,
     reference: "",
-    issueDate: new Date().toISOString().slice(0, 10),
+    issueDate: formatDateToDDMMYYYY(new Date()),
     currency: "GBP",
   },
+  includeDocumentMeta: true,
   lineItems: [createDefaultLineItem()],
   charges: {
     shipping: 0,
