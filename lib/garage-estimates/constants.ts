@@ -23,10 +23,10 @@ export const createDefaultLineItem = (): LineItem => ({
 
 export const createDefaultDraft = (): GarageEstimateDraft => ({
   companyProfile: {
-    name: "Northside Garage",
-    addressLines: ["15 Station Road", "Kingston upon Thames", "KT1 2AB"],
-    phone: "020 0000 0000",
-    email: "service@northsidegarage.co.uk",
+    name: "Browns Road Garage",
+    addressLines: ["71-75 Browns Road", "Surbiton"],
+    phone: "020 ...",
+    email: "service@company.co.uk",
     vatNumber: "",
     logoDataUrl: "",
   },

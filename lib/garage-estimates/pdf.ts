@@ -215,20 +215,37 @@ const drawDocumentHeader = (
   let leftX = MARGIN;
   let leftY = PAGE_HEIGHT - MARGIN;
 
+  const contactLines = [
+    ...getDisplayLines(draft.companyProfile.addressLines),
+    draft.companyProfile.phone || "",
+    draft.companyProfile.email || "",
+    draft.companyProfile.vatNumber
+      ? `VAT No: ${draft.companyProfile.vatNumber}`
+      : "",
+  ].filter(Boolean);
+
+  const nameLineHeight = 30;
+  const contactLineHeight = 11;
+  const textBlockHeight = nameLineHeight + contactLines.length * contactLineHeight;
+
   if (logoImage) {
-    const logoMaxHeight = 52;
-    const ratio = logoImage.width / logoImage.height;
-    const logoHeight = logoMaxHeight;
-    const logoWidth = logoHeight * ratio;
+    const logoSize = textBlockHeight;
+    const imgW = logoImage.width;
+    const imgH = logoImage.height;
+    const scale = Math.min(logoSize / imgW, logoSize / imgH, 1);
+    const drawW = imgW * scale;
+    const drawH = imgH * scale;
+    const offsetX = (logoSize - drawW) / 2;
+    const offsetY = (logoSize - drawH) / 2;
 
     page.drawImage(logoImage, {
-      x: MARGIN,
-      y: leftY - logoHeight,
-      width: logoWidth,
-      height: logoHeight,
+      x: MARGIN + offsetX,
+      y: leftY - logoSize + offsetY,
+      width: drawW,
+      height: drawH,
     });
 
-    leftX += logoWidth + 10;
+    leftX += logoSize + 10;
   }
 
   page.drawText(draft.companyProfile.name || "Garage Company", {
@@ -239,16 +256,7 @@ const drawDocumentHeader = (
     color: TEXT_COLOR,
   });
 
-  leftY -= 30;
-
-  const contactLines = [
-    ...getDisplayLines(draft.companyProfile.addressLines),
-    draft.companyProfile.phone || "",
-    draft.companyProfile.email || "",
-    draft.companyProfile.vatNumber
-      ? `VAT No: ${draft.companyProfile.vatNumber}`
-      : "",
-  ].filter(Boolean);
+  leftY -= nameLineHeight;
 
   contactLines.forEach((line) => {
     page.drawText(line, {
@@ -258,7 +266,7 @@ const drawDocumentHeader = (
       font,
       color: MUTED_TEXT,
     });
-    leftY -= 11;
+    leftY -= contactLineHeight;
   });
 
   let bottomY = leftY;
@@ -773,46 +781,26 @@ export const generateGaragePdf = async (
 
   y = drawTotalsBox(page, y - 8, totals, font, boldFont) - 14;
 
-  const finalCursor = drawNotes(
-    pdfDoc,
-    { page, y },
-    draft.notesTerms,
-    draft,
-    font,
-    boldFont
-  );
-
-  const pages = pdfDoc.getPages();
-  const generatedAt = new Date().toISOString().slice(0, 10);
-
-  pages.forEach((pdfPage, index) => {
-    pdfPage.drawLine({
-      start: { x: MARGIN, y: MARGIN + 16 },
-      end: { x: PAGE_WIDTH - MARGIN, y: MARGIN + 16 },
-      color: TABLE_BORDER,
-      thickness: 1,
-    });
-
-    pdfPage.drawText(`Generated ${generatedAt}`, {
-      x: MARGIN,
-      y: MARGIN + 4,
-      size: 8,
-      font,
-      color: MUTED_TEXT,
-    });
-
-    drawRightAlignedText(
-      pdfPage,
-      `Page ${index + 1} of ${pages.length}`,
-      font,
-      8,
-      PAGE_WIDTH - MARGIN,
-      MARGIN + 4,
-      MUTED_TEXT
-    );
-  });
+  const finalCursor = draft.notesTerms.trim()
+    ? drawNotes(pdfDoc, { page, y }, draft.notesTerms, draft, font, boldFont)
+    : { page, y };
 
   void finalCursor;
+
+  const pages = pdfDoc.getPages();
+  if (pages.length > 1) {
+    pages.forEach((pdfPage, index) => {
+      drawRightAlignedText(
+        pdfPage,
+        `Page ${index + 1} of ${pages.length}`,
+        font,
+        8,
+        PAGE_WIDTH - MARGIN,
+        MARGIN + 4,
+        MUTED_TEXT
+      );
+    });
+  }
 
   return pdfDoc.save();
 };

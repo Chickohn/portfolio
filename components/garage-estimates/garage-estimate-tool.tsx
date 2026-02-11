@@ -82,6 +82,7 @@ export function GarageEstimateTool() {
   const [isHydrated, setIsHydrated] = useState(false);
 
   const importInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const restoredDraft = loadDraftFromStorage();
@@ -508,23 +509,50 @@ export function GarageEstimateTool() {
 
                   <div className="space-y-2">
                     <Label htmlFor="company-logo">Logo (Optional)</Label>
-                    <Input
-                      id="company-logo"
-                      type="file"
-                      accept="image/png,image/jpeg,image/jpg"
-                      onChange={onLogoFileChange}
-                    />
+                    {draft.companyProfile.logoDataUrl ? (
+                      <div className="flex h-10 items-center gap-3 rounded-md border border-slate-300 bg-slate-50/50 px-3">
+                        <span className="text-sm text-slate-600">Logo selected</span>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="h-7 border-slate-300 text-slate-700 hover:bg-slate-100"
+                          onClick={() => logoInputRef.current?.click()}
+                        >
+                          Change logo
+                        </Button>
+                        <input
+                          ref={logoInputRef}
+                          id="company-logo"
+                          type="file"
+                          accept="image/png,image/jpeg,image/jpg"
+                          onChange={onLogoFileChange}
+                          className="sr-only"
+                          aria-hidden="true"
+                          tabIndex={-1}
+                        />
+                      </div>
+                    ) : (
+                      <Input
+                        id="company-logo"
+                        type="file"
+                        accept="image/png,image/jpeg,image/jpg"
+                        onChange={onLogoFileChange}
+                        className="file-input-styled h-10 cursor-pointer"
+                        ref={logoInputRef}
+                      />
+                    )}
                   </div>
                 </div>
 
                 {draft.companyProfile.logoDataUrl ? (
-                  <div className="flex items-center gap-3 rounded-md border border-slate-200 bg-slate-50 p-3">
+                  <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50/80 p-3 shadow-sm">
                     <Image
                       src={draft.companyProfile.logoDataUrl}
                       alt="Company logo preview"
                       width={48}
                       height={48}
-                      className="h-12 w-12 rounded object-cover"
+                      className="h-12 w-12 rounded-lg object-cover ring-1 ring-slate-200/60"
                       unoptimized
                     />
                     <div className="flex-1 text-xs text-slate-600">
@@ -534,6 +562,7 @@ export function GarageEstimateTool() {
                       type="button"
                       size="sm"
                       variant="outline"
+                      className="border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                       onClick={() => updateCompanyProfile({ logoDataUrl: "" })}
                     >
                       Remove
@@ -860,7 +889,7 @@ export function GarageEstimateTool() {
             </div>
           </div>
 
-          <div className="lg:sticky lg:top-20 lg:self-start">
+           <div className="lg:sticky lg:top-32 lg:self-start">
             <TotalsPanel
               totals={totals}
               shipping={draft.charges.shipping}

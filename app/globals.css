@@ -147,6 +147,26 @@ body {
     color: #e5e7eb; /* Improved from gray-300 to gray-200 equivalent */
   }
 
+  /* Styled file input button (Choose file) - modern, accessible */
+  input[type="file"].file-input-styled::file-selector-button,
+  input[type="file"].file-input-styled::-webkit-file-upload-button {
+    margin-right: 1rem;
+    padding: 0.5rem 1rem;
+    border: 0;
+    border-right: 1px solid rgb(226 232 240);
+    border-radius: 6px 0 0 6px;
+    background-color: rgb(241 245 249);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgb(51 65 85);
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+  }
+  input[type="file"].file-input-styled::file-selector-button:hover,
+  input[type="file"].file-input-styled::-webkit-file-upload-button:hover {
+    background-color: rgb(226 232 240);
+  }
+
   /* Ensure minimum touch target size for mobile (44x44px) */
   button, a, [role="button"] {
     min-height: 44px;
