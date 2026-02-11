@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { getProjectById } from '../../../lib/projects'
+import { getPublicInternalProjectBySlug } from '../../../lib/public-projects'
 import ProjectDetailsCard from '@/components/project-details-card'
 import SectionRenderer from '@/components/section-renderer'
 import Script from 'next/script'
@@ -10,7 +10,7 @@ import Script from 'next/script'
  * Generate metadata for project detail pages
  */
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const project = getProjectById(params.slug);
+  const project = await getPublicInternalProjectBySlug(params.slug);
   
   if (!project) {
     return {
@@ -52,7 +52,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default async function Project({ params }: { params: { slug: string } }) {
-  const project = getProjectById(params.slug)
+  const project = await getPublicInternalProjectBySlug(params.slug)
 
   if (!project) {
     notFound()

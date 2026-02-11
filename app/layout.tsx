@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import Script from "next/script";
+import Link from "next/link";
 import NavWrapper from "../components/nav-wrapper";
 
 const geistSans = localFont({
@@ -119,9 +120,13 @@ export default function RootLayout({
         <footer className="bg-gray-900/50 border-t border-gray-800 mt-20">
           <div className="container mx-auto px-4 py-8">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <div className="text-gray-400 text-sm">
+              <Link
+                href="/admin/login"
+                className="text-gray-400 text-sm"
+                aria-label="Admin login"
+              >
                 © 2024 Freddie Kohn. All rights reserved.
-              </div>
+              </Link>
               <div className="flex items-center gap-6">
                 <a 
                   href="mailto:freddiej.kohn@gmail.com" 

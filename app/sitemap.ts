@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
-import { getAllProjectIds } from '../lib/projects'
+import { getPublicInternalProjectSlugs } from '../lib/public-projects'
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://kohn.me.uk'
   
   // Main static pages
@@ -27,7 +27,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   ]
 
   // Dynamic project pages
-  const projectIds = getAllProjectIds()
+  const projectIds = await getPublicInternalProjectSlugs()
   const projectPages = projectIds.map((projectId) => ({
     url: `${baseUrl}/projects/${projectId}`,
     lastModified: new Date(),

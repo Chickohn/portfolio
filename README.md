@@ -25,28 +25,31 @@ A modern, high-performance portfolio website showcasing software engineering and
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
 
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone <repository-url>
 cd portfolio
 ```
 
-2. Install dependencies:
+1. Install dependencies:
+
 ```bash
 npm install
 ```
 
-3. Run the development server:
+1. Run the development server:
+
 ```bash
 npm run dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+1. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Available Scripts
 
@@ -59,9 +62,33 @@ npm run dev
 - `npm run test:coverage` - Run tests with coverage report
 - `npm run analyze` - Analyze bundle size
 
+## Garage Estimate / Invoice PDF Generator
+
+Route: `/apps/garage-estimates`
+
+This tool is fully client-side and lets you build garage estimates/invoices with:
+
+- client and vehicle details
+- line items with quantity/rate/discount/VAT
+- automatic subtotal, VAT total, shipping, and grand total
+- draft autosave in localStorage
+- draft export/import as JSON
+- A4 PDF generation and immediate download/preview in browser
+
+### Draft actions
+
+- **Autosave**: debounced every 500ms to `garageEstimatesDraft:v1`
+- **Clear draft**: removes local draft and resets the form
+- **Export draft JSON**: downloads current draft
+- **Import draft JSON**: restores from a previously exported draft file
+
+### Logo support
+
+In the Company Profile section, upload a PNG/JPG logo file. The file is converted to a data URL in-browser and embedded into the PDF header. No logo file is sent to any server.
+
 ## Project Structure
 
-```
+```text
 portfolio/
 ├── app/                    # Next.js App Router pages
 │   ├── layout.tsx         # Root layout
@@ -100,6 +127,22 @@ portfolio/
 3. **Client Components**: Interactive components marked with `"use client"` directive
 4. **State Management**: React hooks for local state, no global state library needed
 
+## Project data backups (important)
+
+Before migrating the hard-coded project data to a database, we generate a **versioned JSON backup**.
+
+- **Backup location**: `backups/projects-backup-YYYY-MM-DD.json`
+- **How to generate**:
+
+```bash
+npm run backup:projects
+```
+
+This backup includes:
+
+- internal projects (those with detail pages under `/projects/[slug]`)
+- external/list-only projects (those shown on `/projects` without detail pages)
+
 ### Performance Optimizations
 
 - **Image Optimization**: Next.js Image component with AVIF/WebP support
@@ -125,6 +168,80 @@ npm run build
 npm run start
 ```
 
+## Sanity-backed projects + custom admin (no Sanity Studio)
+
+This repo supports migrating the hard-coded project data to **Sanity**, while keeping the **public site UI unchanged** and adding a **custom admin UI under `/admin`**.
+
+### Admin routes
+
+- `/admin/login`
+- `/admin/projects`
+- `/admin/projects/new`
+- `/admin/projects/[id]/edit`
+
+### Required env vars (for Sanity + admin)
+
+See `.env.example` and `docs/environment-variables.md`. At minimum:
+
+```bash
+# Sanity
+NEXT_PUBLIC_SANITY_PROJECT_ID=...
+NEXT_PUBLIC_SANITY_DATASET=production
+SANITY_API_READ_TOKEN=...        # if dataset is private
+SANITY_API_WRITE_TOKEN=...       # server-only
+
+# Admin auth
+ADMIN_EMAIL=you@example.com
+ADMIN_PASSWORD=...
+NEXTAUTH_URL=https://your-domain.com
+NEXTAUTH_SECRET=...              # generate a strong random secret
+```
+
+### Manual Sanity setup (one-time)
+
+1. Create a Sanity project + dataset.
+1. Create two API tokens in Sanity:
+   - **Read token** (optional if dataset public)
+   - **Write token** with permissions to create/update/delete documents + upload assets
+
+### Backup + import (migration)
+
+1. Generate a versioned backup JSON:
+
+```bash
+npm run backup:projects
+```
+
+1. Import the latest backup into Sanity (safe: uses `createIfNotExists`):
+
+```bash
+npm run sanity:import-projects
+```
+
+Optionally specify a backup file:
+
+```bash
+npm run sanity:import-projects -- backups/projects-backup-YYYY-MM-DD.json
+```
+
+### Disabling fallback after migration
+
+Public pages read from Sanity **first**, and fall back to the existing hard-coded data if Sanity is empty/unavailable.
+
+Once you’ve confirmed Sanity has the full dataset, set:
+
+```bash
+SANITY_DISABLE_FALLBACK=true
+```
+
+### Optional: on-demand revalidation
+
+`POST /api/revalidate` with header `x-revalidate-secret: $REVALIDATE_SECRET` and optional JSON body:
+
+```json
+{ "slugs": ["route-optimisation"] }
+```
+
 ### Environment Variables
 
 Create a `.env.local` file (see `.env.example` for reference):
@@ -137,6 +254,7 @@ NEXT_PUBLIC_GA_ID=G-VJ8DW3XTD7
 ### Deployment Platforms
 
 The site is optimized for deployment on:
+
 - **Vercel** (recommended for Next.js)
 - **Netlify**
 - **Any Node.js hosting platform**
@@ -175,6 +293,6 @@ E2E tests can be added using Playwright or Cypress (not included in base setup).
 
 ## Contact
 
-- **Email**: freddiej.kohn@gmail.com
+- **Email**: [freddiej.kohn@gmail.com](mailto:freddiej.kohn@gmail.com)
 - **LinkedIn**: [freddie-j-kohn](https://www.linkedin.com/in/freddie-j-kohn/)
 - **GitHub**: [Chickohn](https://github.com/Chickohn)

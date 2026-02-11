@@ -26,7 +26,13 @@ export function useKeyboardShortcuts(
 
     const handleKeyDown = (event: KeyboardEvent) => {
       shortcuts.forEach(({ key, ctrlKey, shiftKey, altKey, handler }) => {
-        const keyMatches = event.key.toLowerCase() === key.toLowerCase();
+        const eventKey = typeof event.key === 'string' ? event.key.toLowerCase() : '';
+        const shortcutKey = typeof key === 'string' ? key.toLowerCase() : '';
+        if (!eventKey || !shortcutKey) {
+          return;
+        }
+
+        const keyMatches = eventKey === shortcutKey;
         const ctrlMatches = ctrlKey === undefined || event.ctrlKey === ctrlKey;
         const shiftMatches = shiftKey === undefined || event.shiftKey === shiftKey;
         const altMatches = altKey === undefined || event.altKey === altKey;
@@ -52,4 +58,3 @@ export function useKeyboardShortcuts(
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [shortcuts, enabled]);
 }
-
