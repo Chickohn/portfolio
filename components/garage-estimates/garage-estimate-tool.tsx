@@ -112,11 +112,14 @@ export function GarageEstimateTool() {
     );
   }, [draft.lineItems]);
 
-  const shippingError = draft.charges.shipping < 0 ? "Shipping cannot be negative." : undefined;
+  const shippingError =
+    draft.includeShipping && draft.charges.shipping < 0
+      ? "Shipping cannot be negative."
+      : undefined;
 
   const totals = useMemo(
-    () => calculateTotals(draft.lineItems, draft.charges.shipping),
-    [draft.lineItems, draft.charges.shipping]
+    () => calculateTotals(draft.lineItems, draft.includeShipping ? draft.charges.shipping : 0),
+    [draft.lineItems, draft.charges.shipping, draft.includeShipping]
   );
 
   const validationCount = useMemo(() => {
@@ -946,7 +949,14 @@ export function GarageEstimateTool() {
             <TotalsPanel
               totals={totals}
               shipping={draft.charges.shipping}
+              includeShipping={draft.includeShipping}
               shippingError={shippingError}
+              onToggleShipping={(value) =>
+                updateDraft((previous) => ({
+                  ...previous,
+                  includeShipping: value,
+                }))
+              }
               onShippingChange={(value) =>
                 updateDraft((previous) => ({
                   ...previous,

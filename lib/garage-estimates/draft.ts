@@ -199,6 +199,10 @@ export const normalizeGarageDraft = (input: unknown): GarageEstimateDraft => {
       typeof input.includeDocumentMeta === "boolean"
         ? input.includeDocumentMeta
         : fallback.includeDocumentMeta,
+    includeShipping:
+      typeof input.includeShipping === "boolean"
+        ? input.includeShipping
+        : fallback.includeShipping,
   };
 };
 

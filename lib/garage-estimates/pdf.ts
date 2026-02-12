@@ -556,20 +556,23 @@ const drawTotalsBox = (
   page: PDFPage,
   yTop: number,
   totals: TotalsComputation,
+  includeShipping: boolean,
   font: PDFFont,
   boldFont: PDFFont
 ): number => {
   const boxWidth = 220;
   const rowHeight = 18;
-  const labels = ["Subtotal", "VAT total", "Shipping", "Grand total"];
-  const values = [
-    formatCurrency(totals.subtotal),
-    formatCurrency(totals.vatTotal),
-    formatCurrency(totals.shipping),
-    formatCurrency(totals.total),
+  const rows: Array<{ label: string; value: string; isTotal?: boolean }> = [
+    { label: "Subtotal", value: formatCurrency(totals.subtotal) },
+    { label: "VAT total", value: formatCurrency(totals.vatTotal) },
+    ...(includeShipping
+      ? [{ label: "Shipping", value: formatCurrency(totals.shipping) }]
+      : []),
+    { label: "Grand total", value: formatCurrency(totals.total), isTotal: true },
   ];
+  const separatorIndex = rows.findIndex((row) => row.isTotal) - 1;
 
-  const boxHeight = rowHeight * labels.length + 20;
+  const boxHeight = rowHeight * rows.length + 20;
   const x = PAGE_WIDTH - MARGIN - boxWidth;
 
   page.drawRectangle({
@@ -582,29 +585,26 @@ const drawTotalsBox = (
   });
 
   let y = yTop - 16;
-  labels.forEach((label, index) => {
-    const value = values[index];
-    const isTotal = index === labels.length - 1;
-
-    page.drawText(label, {
+  rows.forEach((row, index) => {
+    page.drawText(row.label, {
       x: x + 10,
       y,
       size: 10,
-      font: isTotal ? boldFont : font,
-      color: isTotal ? TEXT_COLOR : MUTED_TEXT,
+      font: row.isTotal ? boldFont : font,
+      color: row.isTotal ? TEXT_COLOR : MUTED_TEXT,
     });
 
     drawRightAlignedText(
       page,
-      value,
-      isTotal ? boldFont : font,
+      row.value,
+      row.isTotal ? boldFont : font,
       10,
       x + boxWidth - 10,
       y,
       TEXT_COLOR
     );
 
-    if (index === labels.length - 2) {
+    if (index === separatorIndex) {
       page.drawLine({
         start: { x: x + 10, y: y - 5 },
         end: { x: x + boxWidth - 10, y: y - 5 },
@@ -771,7 +771,8 @@ export const generateGaragePdf = async (
     y = drawLineItemRow(page, y, lineItem, index, font);
   });
 
-  const totals = calculateTotals(draft.lineItems, draft.charges.shipping);
+  const effectiveShipping = draft.includeShipping ? draft.charges.shipping : 0;
+  const totals = calculateTotals(draft.lineItems, effectiveShipping);
 
   if (y - 120 < MARGIN + 100) {
     const nextPage = startContinuationPage(pdfDoc, draft, font, boldFont);
@@ -779,7 +780,7 @@ export const generateGaragePdf = async (
     y = nextPage.y;
   }
 
-  y = drawTotalsBox(page, y - 8, totals, font, boldFont) - 14;
+  y = drawTotalsBox(page, y - 8, totals, draft.includeShipping, font, boldFont) - 14;
 
   const finalCursor = draft.notesTerms.trim()
     ? drawNotes(pdfDoc, { page, y }, draft.notesTerms, draft, font, boldFont)

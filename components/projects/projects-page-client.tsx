@@ -8,6 +8,25 @@ import { motion, useInView } from "framer-motion";
 import { scrollAnimationVariants, staggerContainer } from "@/lib/utils";
 import type { ProjectItem, ProjectCategory, CategoryConfig } from "@/types";
 
+function shouldOpenInNewTab(href: string): boolean {
+  const trimmed = href.trim();
+  if (!trimmed) return false;
+
+  // Relative paths are always same-tab navigation.
+  if (trimmed.startsWith("/")) return false;
+
+  // Treat same-domain absolute URLs as internal navigation.
+  if (
+    trimmed.includes("kohn.me.uk") ||
+    trimmed.includes("localhost:3000") ||
+    trimmed.includes("127.0.0.1:3000")
+  ) {
+    return false;
+  }
+
+  return /^https?:\/\//i.test(trimmed);
+}
+
 // Category configuration with display settings
 const categoryConfig: Record<string, CategoryConfig> = {
   "Software Development": {
@@ -172,8 +191,8 @@ export default function ProjectsPageClient({ allProjects }: { allProjects: Proje
                             {project.external && project.link ? (
                               <a
                                 href={project.link}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                                target={shouldOpenInNewTab(project.link) ? "_blank" : undefined}
+                                rel={shouldOpenInNewTab(project.link) ? "noopener noreferrer" : undefined}
                                 className="text-blue-500 hover:text-blue-400 transition-colors"
                               >
                                 <ArrowUpRight className="w-6 h-6" />
@@ -181,8 +200,8 @@ export default function ProjectsPageClient({ allProjects }: { allProjects: Proje
                             ) : project.external && project.slug.startsWith("http") ? (
                               <a
                                 href={project.slug}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                                target={shouldOpenInNewTab(project.slug) ? "_blank" : undefined}
+                                rel={shouldOpenInNewTab(project.slug) ? "noopener noreferrer" : undefined}
                                 className="text-blue-500 hover:text-blue-400 transition-colors"
                               >
                                 <ArrowUpRight className="w-6 h-6" />

@@ -56,6 +56,8 @@ export interface GarageEstimateDraft {
   documentMeta: DocumentMeta;
   /** When false, document meta section is greyed out and omitted from PDF */
   includeDocumentMeta: boolean;
+  /** When false, shipping is excluded from totals and omitted from PDF */
+  includeShipping: boolean;
   lineItems: LineItem[];
   charges: Charges;
   notesTerms: string;

@@ -117,12 +117,12 @@ export default function RootLayout({
         </main>
 
         {/* Footer */}
-        <footer className="bg-gray-900/50 border-t border-gray-800 mt-20">
+        <footer className="relative z-20 mt-20 border-t border-slate-700 bg-slate-950 text-slate-100 shadow-[0_-10px_30px_rgba(0,0,0,0.35)]">
           <div className="container mx-auto px-4 py-8">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <Link
                 href="/admin/login"
-                className="text-gray-400 text-sm"
+                className="text-slate-300 text-sm"
                 aria-label="Admin login"
               >
                 © 2024 Freddie Kohn. All rights reserved.
@@ -130,7 +130,7 @@ export default function RootLayout({
               <div className="flex items-center gap-6">
                 <a 
                   href="mailto:freddiej.kohn@gmail.com" 
-                  className="text-gray-400 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 rounded"
+                  className="text-slate-300 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded"
                   aria-label="Send email to Freddie Kohn"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -141,7 +141,7 @@ export default function RootLayout({
                   href="https://github.com/Chickohn" 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="text-gray-400 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 rounded"
+                  className="text-slate-300 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded"
                   aria-label="Visit Freddie Kohn's GitHub profile"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -153,7 +153,7 @@ export default function RootLayout({
                   href="https://www.linkedin.com/in/freddie-j-kohn/" 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="text-gray-400 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 rounded"
+                  className="text-slate-300 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded"
                   aria-label="Visit Freddie Kohn's LinkedIn profile"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">

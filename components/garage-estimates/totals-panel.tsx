@@ -8,7 +8,9 @@ import { TotalsComputation } from "@/lib/garage-estimates/types";
 interface TotalsPanelProps {
   totals: TotalsComputation;
   shipping: number;
+  includeShipping: boolean;
   shippingError?: string;
+  onToggleShipping: (value: boolean) => void;
   onShippingChange: (value: number) => void;
   onShippingBlur: () => void;
 }
@@ -16,7 +18,9 @@ interface TotalsPanelProps {
 export function TotalsPanel({
   totals,
   shipping,
+  includeShipping,
   shippingError,
+  onToggleShipping,
   onShippingChange,
   onShippingBlur,
 }: TotalsPanelProps) {
@@ -38,16 +42,32 @@ export function TotalsPanel({
         </div>
 
         <div className="space-y-2 pt-1">
-          <Label htmlFor="shipping">Shipping</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="shipping">Shipping</Label>
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                checked={includeShipping}
+                onChange={(event) => onToggleShipping(event.target.checked)}
+                className="h-4 w-4 rounded border-slate-300"
+                aria-label="Include shipping on PDF"
+              />
+              Include on PDF
+            </label>
+          </div>
           <DecimalInput
             id="shipping"
             value={shipping}
             onChange={onShippingChange}
             onBlur={onShippingBlur}
+            disabled={!includeShipping}
             aria-invalid={Boolean(shippingError)}
-            className="h-10 rounded-md border border-slate-300 bg-white text-slate-900 shadow-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
+            className="h-10 rounded-md border border-slate-300 bg-white text-slate-900 shadow-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
           />
           {shippingError ? <p className="text-xs text-red-600">{shippingError}</p> : null}
+          {!includeShipping ? (
+            <p className="text-xs text-slate-500">Shipping is excluded from totals and PDF.</p>
+          ) : null}
         </div>
 
         <div className="border-t border-slate-200 pt-3">

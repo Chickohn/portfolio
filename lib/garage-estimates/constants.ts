@@ -51,6 +51,7 @@ export const createDefaultDraft = (): GarageEstimateDraft => ({
     currency: "GBP",
   },
   includeDocumentMeta: true,
+  includeShipping: true,
   lineItems: [createDefaultLineItem()],
   charges: {
     shipping: 0,
