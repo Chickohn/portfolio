@@ -12,6 +12,7 @@ interface LineItemsTableProps {
   lineItems: LineItem[];
   lineItemErrors: Record<string, LineItemValidationErrors>;
   onAddLineItem: () => void;
+  onClearAllLineItems: () => void;
   onRemoveLineItem: (id: string) => void;
   onMoveLineItem: (id: string, direction: "up" | "down") => void;
   onChangeLineItem: (id: string, patch: Partial<LineItem>) => void;
@@ -31,6 +32,7 @@ export function LineItemsTable({
   lineItems,
   lineItemErrors,
   onAddLineItem,
+  onClearAllLineItems,
   onRemoveLineItem,
   onMoveLineItem,
   onChangeLineItem,
@@ -39,36 +41,59 @@ export function LineItemsTable({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-slate-900">Items</h2>
-        <Button type="button" onClick={onAddLineItem} className="gap-2" aria-label="Add items">
-          <Plus className="h-4 w-4" />
-          Add Items
-        </Button>
+        <h2 className="text-2xl font-semibold tracking-tight text-slate-900">Items</h2>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onClearAllLineItems}
+            className="min-h-0 min-w-0 text-sm font-medium text-red-600 underline-offset-2 hover:text-red-700 hover:underline"
+          >
+            Clear
+          </button>
+          <Button
+            type="button"
+            onClick={onAddLineItem}
+            className="h-10 min-h-0 gap-2 px-5"
+            aria-label="Add items"
+          >
+            <Plus className="h-4 w-4" />
+            Add Items
+          </Button>
+        </div>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-slate-200">
-        <table className="min-w-[980px] w-full border-collapse text-sm">
+      <div className="overflow-x-auto rounded-xl border border-slate-200 xl:overflow-visible">
+        <table className="min-w-[860px] w-full table-fixed border-collapse text-sm lg:min-w-0">
+          <colgroup>
+            <col style={{ width: "35%" }} />
+            <col style={{ width: "7%" }} />
+            <col style={{ width: "11%" }} />
+            <col style={{ width: "18%" }} />
+            <col style={{ width: "8%" }} />
+            <col style={{ width: "11%" }} />
+            <col style={{ width: "10%" }} />
+          </colgroup>
           <thead className="bg-slate-100 text-slate-700">
             <tr>
               <th scope="col" className="border-b border-slate-200 px-3 py-3 text-left font-medium">
                 Description
               </th>
-              <th scope="col" className="border-b border-slate-200 px-3 py-3 text-left font-medium">
+              <th scope="col" className="border-b border-slate-200 px-2 py-3 text-center font-medium">
                 Qty
               </th>
-              <th scope="col" className="border-b border-slate-200 px-3 py-3 text-left font-medium">
+              <th scope="col" className="border-b border-slate-200 px-2 py-3 text-left font-medium">
                 Rate
               </th>
-              <th scope="col" className="border-b border-slate-200 px-3 py-3 text-left font-medium">
+              <th scope="col" className="border-b border-slate-200 px-2 py-3 text-left font-medium">
                 Discount
               </th>
-              <th scope="col" className="border-b border-slate-200 px-3 py-3 text-left font-medium">
-                VAT rate
+              <th scope="col" className="border-b border-slate-200 px-2 py-3 text-center font-medium">
+                VAT
               </th>
               <th scope="col" className="border-b border-slate-200 px-3 py-3 text-right font-medium">
                 Amount
               </th>
-              <th scope="col" className="border-b border-slate-200 px-3 py-3 text-right font-medium">
+              <th scope="col" className="border-b border-slate-200 px-2 py-3 text-center font-medium">
                 Actions
               </th>
             </tr>
@@ -80,7 +105,7 @@ export function LineItemsTable({
               const hasError = Boolean(errors.qty || errors.rate || errors.discountValue);
 
               return (
-                <tr key={lineItem.id} className="align-top even:bg-slate-50/50">
+                <tr key={lineItem.id} className="even:bg-slate-50/50">
                   <td className="border-b border-slate-200 px-3 py-3">
                     <label htmlFor={`description-${lineItem.id}`} className="sr-only">
                       Description
@@ -92,57 +117,53 @@ export function LineItemsTable({
                         onChangeLineItem(lineItem.id, { description: event.target.value })
                       }
                       onBlur={() => onClampLineItem(lineItem.id)}
-                      rows={3}
+                      rows={2}
                       placeholder="Describe labour, parts, diagnostics..."
-                      className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
+                      className="w-full resize-none rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
                     />
                     {hasError ? (
-                      <p className="mt-2 text-xs text-red-600">
+                      <p className="mt-1 text-xs text-red-600">
                         {errors.qty || errors.rate || errors.discountValue}
                       </p>
                     ) : null}
                   </td>
 
-                  <td className="border-b border-slate-200 px-3 py-3">
-                    <label htmlFor={`qty-${lineItem.id}`} className="sr-only">
-                      Quantity
-                    </label>
-                    <Input
-                      id={`qty-${lineItem.id}`}
-                      type="number"
-                      min={0}
-                      step={1}
-                      value={lineItem.qty}
-                      onChange={(event) =>
-                        onChangeLineItem(lineItem.id, { qty: parseNumber(event.target.value) })
-                      }
-                      onBlur={() => onClampLineItem(lineItem.id)}
-                      aria-invalid={Boolean(errors.qty)}
-                      className="h-10 min-w-[88px]"
-                    />
-                    {errors.qty ? <p className="mt-1 text-xs text-red-600">{errors.qty}</p> : null}
+                  <td className="border-b border-slate-200 px-2 py-3 align-middle">
+                    <div className="flex justify-center">
+                      <Input
+                        id={`qty-${lineItem.id}`}
+                        type="number"
+                        min={0}
+                        step={1}
+                        value={lineItem.qty}
+                        onChange={(event) =>
+                          onChangeLineItem(lineItem.id, { qty: Math.floor(parseNumber(event.target.value)) })
+                        }
+                        onBlur={() => onClampLineItem(lineItem.id)}
+                        aria-invalid={Boolean(errors.qty)}
+                        aria-label="Quantity"
+                        className="h-10 w-full max-w-[4rem] text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                    </div>
+                    {errors.qty ? <p className="mt-1 text-xs text-center text-red-600">{errors.qty}</p> : null}
                   </td>
 
-                  <td className="border-b border-slate-200 px-3 py-3">
-                    <label htmlFor={`rate-${lineItem.id}`} className="sr-only">
-                      Rate
-                    </label>
+                  <td className="border-b border-slate-200 px-2 py-3 align-middle">
                     <DecimalInput
                       id={`rate-${lineItem.id}`}
                       value={lineItem.rate}
                       onChange={(rate) => onChangeLineItem(lineItem.id, { rate })}
                       onBlur={() => onClampLineItem(lineItem.id)}
                       aria-invalid={Boolean(errors.rate)}
-                      className="h-10 min-w-[120px] rounded-md border border-slate-300 bg-white text-slate-900 shadow-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
+                      aria-label="Rate"
+                      placeholder="0.00"
+                      className="h-10 w-full rounded-md border border-slate-300 bg-white text-slate-900 shadow-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
                     />
                     {errors.rate ? <p className="mt-1 text-xs text-red-600">{errors.rate}</p> : null}
                   </td>
 
-                  <td className="border-b border-slate-200 px-3 py-3">
-                    <div className="space-y-2">
-                      <label htmlFor={`discount-type-${lineItem.id}`} className="sr-only">
-                        Discount type
-                      </label>
+                  <td className="border-b border-slate-200 px-2 py-3 align-middle">
+                    <div className="space-y-1.5">
                       <select
                         id={`discount-type-${lineItem.id}`}
                         value={lineItem.discountType}
@@ -152,17 +173,13 @@ export function LineItemsTable({
                           })
                         }
                         onBlur={() => onClampLineItem(lineItem.id)}
-                        className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
+                        className="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
                         aria-label="Discount type"
                       >
                         <option value="none">None</option>
-                        <option value="percent">Percent (%)</option>
-                        <option value="fixed">Fixed (£)</option>
+                        <option value="percent">%</option>
+                        <option value="fixed">£</option>
                       </select>
-
-                      <label htmlFor={`discount-value-${lineItem.id}`} className="sr-only">
-                        Discount value
-                      </label>
                       <DecimalInput
                         id={`discount-value-${lineItem.id}`}
                         value={lineItem.discountValue}
@@ -172,7 +189,8 @@ export function LineItemsTable({
                         onBlur={() => onClampLineItem(lineItem.id)}
                         aria-invalid={Boolean(errors.discountValue)}
                         aria-label="Discount value"
-                        className="h-10 min-w-[120px] rounded-md border border-slate-300 bg-white text-slate-900 shadow-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
+                        placeholder="0.00"
+                        className="h-9 w-full rounded-md border border-slate-300 bg-white text-slate-900 shadow-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
                       />
                     </div>
                     {errors.discountValue ? (
@@ -180,63 +198,63 @@ export function LineItemsTable({
                     ) : null}
                   </td>
 
-                  <td className="border-b border-slate-200 px-3 py-3">
-                    <label htmlFor={`vat-${lineItem.id}`} className="sr-only">
-                      VAT rate
-                    </label>
-                    <select
-                      id={`vat-${lineItem.id}`}
-                      value={lineItem.vatRate}
-                      onChange={(event) =>
-                        onChangeLineItem(lineItem.id, {
-                          vatRate: Number(event.target.value) as VatRate,
-                        })
-                      }
-                      onBlur={() => onClampLineItem(lineItem.id)}
-                      className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
-                    >
-                      <option value={0}>0%</option>
-                      <option value={5}>5%</option>
-                      <option value={20}>20%</option>
-                    </select>
+                  <td className="border-b border-slate-200 px-2 py-3 align-middle">
+                    <div className="flex justify-center">
+                      <select
+                        id={`vat-${lineItem.id}`}
+                        value={lineItem.vatRate}
+                        onChange={(event) =>
+                          onChangeLineItem(lineItem.id, {
+                            vatRate: Number(event.target.value) as VatRate,
+                          })
+                        }
+                        onBlur={() => onClampLineItem(lineItem.id)}
+                        aria-label="VAT rate"
+                        className="h-10 w-full rounded-md border border-slate-300 bg-white px-2 text-center text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
+                      >
+                        <option value={0}>0%</option>
+                        <option value={5}>5%</option>
+                        <option value={20}>20%</option>
+                      </select>
+                    </div>
                   </td>
 
-                  <td className="border-b border-slate-200 px-3 py-3 text-right font-medium text-slate-900">
+                  <td className="border-b border-slate-200 px-3 py-3 align-middle text-right font-medium tabular-nums text-slate-900 whitespace-nowrap">
                     {formatCurrency(computed.net)}
                   </td>
 
-                  <td className="border-b border-slate-200 px-3 py-3">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={() => onMoveLineItem(lineItem.id, "up")}
-                        disabled={index === 0}
-                        aria-label={`Move line ${index + 1} up`}
-                      >
-                        <ArrowUp className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={() => onMoveLineItem(lineItem.id, "down")}
-                        disabled={index === lineItems.length - 1}
-                        aria-label={`Move line ${index + 1} down`}
-                      >
-                        <ArrowDown className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="icon"
-                        onClick={() => onRemoveLineItem(lineItem.id)}
-                        disabled={lineItems.length <= 1}
-                        aria-label={`Remove line ${index + 1}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                  <td className="border-b border-slate-200 px-2 py-3 align-middle">
+                    <div className="flex justify-center">
+                      <div className="inline-flex overflow-hidden rounded-md border border-slate-300 bg-white shadow-sm">
+                        <div className="flex flex-col border-r border-slate-200">
+                          <button
+                            type="button"
+                            onClick={() => onMoveLineItem(lineItem.id, "up")}
+                            disabled={index === 0}
+                            aria-label={`Move line ${index + 1} up`}
+                            className="flex h-7 w-9 min-h-0 min-w-0 items-center justify-center border-b border-slate-200 p-0 text-slate-700 transition-colors hover:bg-slate-50 hover:text-slate-900 disabled:text-slate-300 disabled:cursor-not-allowed"
+                          >
+                            <ArrowUp className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onMoveLineItem(lineItem.id, "down")}
+                            disabled={index === lineItems.length - 1}
+                            aria-label={`Move line ${index + 1} down`}
+                            className="flex h-7 w-9 min-h-0 min-w-0 items-center justify-center p-0 text-slate-700 transition-colors hover:bg-slate-50 hover:text-slate-900 disabled:text-slate-300 disabled:cursor-not-allowed"
+                          >
+                            <ArrowDown className="h-4 w-4" />
+                          </button>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => onRemoveLineItem(lineItem.id)}
+                          aria-label={`Remove line ${index + 1}`}
+                          className="flex h-14 w-9 min-h-0 min-w-0 items-center justify-center p-0 text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
                   </td>
                 </tr>

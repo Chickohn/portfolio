@@ -21,7 +21,7 @@ export function TotalsPanel({
   onShippingBlur,
 }: TotalsPanelProps) {
   return (
-    <aside className="rounded-xl border border-slate-200 bg-white p-5 text-slate-900 shadow-sm">
+    <aside className="rounded-xl border border-slate-200 bg-white p-5 text-slate-900 shadow-sm xl:sticky xl:top-24">
       <h2 className="text-lg font-semibold">Totals</h2>
       <p className="mt-1 text-sm text-slate-500">
         Shipping is treated as non-VAT.

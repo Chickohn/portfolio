@@ -167,10 +167,12 @@ body {
     background-color: rgb(226 232 240);
   }
 
-  /* Ensure minimum touch target size for mobile (44x44px) */
-  button, a, [role="button"] {
-    min-height: 44px;
-    min-width: 44px;
+  /* Ensure minimum touch target size for touch devices (44x44px) */
+  @media (pointer: coarse) {
+    button, a, [role="button"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
   }
 
   /* Enhanced focus visibility for keyboard navigation */

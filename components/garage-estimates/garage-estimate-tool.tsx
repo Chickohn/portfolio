@@ -207,7 +207,26 @@ export function GarageEstimateTool() {
   const onRemoveLineItem = (id: string) => {
     updateDraft((previous) => {
       if (previous.lineItems.length <= 1) {
-        return previous;
+        const [existing] = previous.lineItems;
+        if (!existing) {
+          return previous;
+        }
+
+        const empty = createDefaultLineItem();
+        return {
+          ...previous,
+          lineItems: [
+            {
+              ...existing,
+              description: "",
+              qty: empty.qty,
+              rate: empty.rate,
+              discountType: empty.discountType,
+              discountValue: empty.discountValue,
+              vatRate: empty.vatRate,
+            },
+          ],
+        };
       }
 
       return {
@@ -215,6 +234,13 @@ export function GarageEstimateTool() {
         lineItems: previous.lineItems.filter((lineItem) => lineItem.id !== id),
       };
     });
+  };
+
+  const onClearAllLineItems = () => {
+    updateDraft((previous) => ({
+      ...previous,
+      lineItems: [createDefaultLineItem()],
+    }));
   };
 
   const onMoveLineItem = (id: string, direction: "up" | "down") => {
@@ -359,8 +385,16 @@ export function GarageEstimateTool() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 pb-16">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="relative isolate min-h-screen overflow-x-clip pb-16">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-[#06215a] via-[#041742] to-[#030f2d]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_15%_20%,rgba(59,130,246,0.22),transparent_35%),radial-gradient(circle_at_85%_75%,rgba(37,99,235,0.18),transparent_40%)]"
+      />
+      <div className="mx-auto max-w-[1720px] px-4 py-8 sm:px-6 lg:px-8 2xl:px-10">
         <header className="rounded-2xl border border-slate-700 bg-slate-900/80 p-5 text-slate-100 shadow-sm backdrop-blur-sm">
           <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
             Garage Estimate / Invoice PDF Generator
@@ -431,7 +465,7 @@ export function GarageEstimateTool() {
           </div>
         ) : null}
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px] 2xl:grid-cols-[minmax(0,1fr)_360px]">
           <div className="space-y-6 lg:min-h-0">
             <Card className="border-slate-200 bg-white text-slate-900">
               <CardHeader>
@@ -574,8 +608,26 @@ export function GarageEstimateTool() {
 
             <div className="grid gap-6 md:grid-cols-2">
               <Card className="border-slate-200 bg-white text-slate-900">
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0">
                   <CardTitle>Bill To + Vehicle</CardTitle>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700"
+                    onClick={() =>
+                      updateDraft((previous) => {
+                        const defaults = createDefaultDraft();
+                        return {
+                          ...previous,
+                          clientDetails: defaults.clientDetails,
+                          vehicleDetails: defaults.vehicleDetails,
+                        };
+                      })
+                    }
+                  >
+                    Clear
+                  </Button>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
@@ -829,6 +881,7 @@ export function GarageEstimateTool() {
                   lineItems={draft.lineItems}
                   lineItemErrors={lineItemErrors}
                   onAddLineItem={onAddLineItem}
+                  onClearAllLineItems={onClearAllLineItems}
                   onRemoveLineItem={onRemoveLineItem}
                   onMoveLineItem={onMoveLineItem}
                   onChangeLineItem={onChangeLineItem}
