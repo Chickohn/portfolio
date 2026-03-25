@@ -121,7 +121,7 @@ export default async function Project({ params }: { params: { slug: string } }) 
     project.description.includes("Stack:") &&
     project.description.includes("Outcome:");
   const snakePuzzleDescription =
-    "This challenge hides a clue in plain sight. Reach the required score to unlock the secret codeword.";
+    "This challenge hides a clue in plain sight. Reach the required score to unlock the secret codeword. (Might be easier on a desktop!)";
   const renderedDescription = isSnakePuzzlePage ? snakePuzzleDescription : project.description;
   const renderedSections = isSnakePuzzlePage
     ? project.sections.filter((section) => section.type === "game")
