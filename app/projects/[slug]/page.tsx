@@ -113,6 +113,20 @@ export default async function Project({ params }: { params: { slug: string } }) 
     ]
   };
 
+  const isSnakePuzzlePage = params.slug === "snake";
+  const hasPortfolioSummary =
+    !isSnakePuzzlePage &&
+    project.description.includes("Problem:") &&
+    project.description.includes("Role:") &&
+    project.description.includes("Stack:") &&
+    project.description.includes("Outcome:");
+  const snakePuzzleDescription =
+    "This challenge hides a clue in plain sight. Reach the required score to unlock the secret codeword.";
+  const renderedDescription = isSnakePuzzlePage ? snakePuzzleDescription : project.description;
+  const renderedSections = isSnakePuzzlePage
+    ? project.sections.filter((section) => section.type === "game")
+    : project.sections;
+
   return (
     <div className="min-h-screen">
       {/* Structured Data for SEO */}
@@ -160,8 +174,13 @@ export default async function Project({ params }: { params: { slug: string } }) 
             {project.title}
           </h1>
               
-              {/* Interactive Project Details */}
-              <ProjectDetailsCard description={project.description} />
+              {hasPortfolioSummary ? (
+                <ProjectDetailsCard description={project.description} />
+              ) : (
+                <p className="mx-auto max-w-2xl text-gray-200 text-base md:text-lg leading-relaxed">
+                  {renderedDescription}
+                </p>
+              )}
             </div>
           
           {/* Technologies */}
@@ -180,7 +199,7 @@ export default async function Project({ params }: { params: { slug: string } }) 
           {/* Project Content Card */}
           <div className="bg-gray-900/80 backdrop-blur-sm border border-gray-700/50 rounded-2xl shadow-2xl p-8">
             <div className="space-y-6">
-            {project.sections.map((section, index) => (
+            {renderedSections.map((section, index) => (
               <SectionRenderer key={index} section={section} index={index} />
             ))}
             </div>

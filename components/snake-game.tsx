@@ -7,6 +7,8 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
  * Optimized for performance using refs to avoid unnecessary re-renders
  */
 export default function SnakeGame() {
+  const SECRET_THRESHOLD = 50;
+  const MIN_SWIPE_PX = 24;
   // --- Config ---
   const CELL = 20;
   const GRID_W = 30;
@@ -18,6 +20,7 @@ export default function SnakeGame() {
   const STEP_MS = 90;
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   // Use a ref for the latest direction so keypresses feel responsive
   const queuedDirRef = useRef<{ x: number; y: number }>({ x: 1, y: 0 });
@@ -42,13 +45,25 @@ export default function SnakeGame() {
     paused: boolean;
   }
 
-  const [ui, setUi] = useState<UIState>(() => {
-    if (typeof window !== 'undefined') {
-      const high = Number(localStorage.getItem("snake_high_score") || "0") || 0;
-      return { score: 0, highScore: high, alive: true, paused: false };
-    }
-    return { score: 0, highScore: 0, alive: true, paused: false };
+  const [ui, setUi] = useState<UIState>({
+    score: 0,
+    highScore: 0,
+    alive: true,
+    paused: false,
   });
+  const uiRef = useRef<UIState>(ui);
+
+  useEffect(() => {
+    uiRef.current = ui;
+  }, [ui]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const high = Number(localStorage.getItem("snake_high_score") || "0") || 0;
+    setUi((prev) => ({ ...prev, highScore: high }));
+  }, []);
 
   const colors = useMemo(
     () => ({
@@ -128,6 +143,15 @@ export default function SnakeGame() {
     setUiFlags({ paused: g.paused });
   }
 
+  function queueDirection(next: { x: number; y: number }) {
+    // prevent reversing directly into yourself
+    const g = gameRef.current;
+    const cur = g ? g.dir : { x: 1, y: 0 };
+    if (!(next.x === -cur.x && next.y === -cur.y)) {
+      queuedDirRef.current = next;
+    }
+  }
+
   // --- Input ---
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -145,12 +169,7 @@ export default function SnakeGame() {
       if (k === "arrowright" || k === "d") next = { x: 1, y: 0 };
 
       if (next) {
-        // prevent reversing
-        const g = gameRef.current;
-        const cur = g ? g.dir : { x: 1, y: 0 };
-        if (!(next.x === -cur.x && next.y === -cur.y)) {
-          queuedDirRef.current = next;
-        }
+        queueDirection(next);
         e.preventDefault();
       }
     };
@@ -259,9 +278,10 @@ export default function SnakeGame() {
       }
 
       // overlay text
+      const liveUi = uiRef.current;
       context.fillStyle = colors.text;
       context.font = "20px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-      context.fillText(`Score: ${ui.score}   High: ${ui.highScore}`, 10, 26);
+      context.fillText(`Score: ${liveUi.score}   High: ${liveUi.highScore}`, 10, 26);
 
       if (g.paused && g.alive) {
         context.fillStyle = colors.text;
@@ -300,6 +320,39 @@ export default function SnakeGame() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [colors]);
 
+  function handleTouchStart(e: React.TouchEvent<HTMLCanvasElement>) {
+    const t = e.touches[0];
+    if (!t) return;
+    touchStartRef.current = { x: t.clientX, y: t.clientY };
+  }
+
+  function handleTouchMove(e: React.TouchEvent<HTMLCanvasElement>) {
+    // Prevent page scroll while interacting with the game canvas.
+    e.preventDefault();
+  }
+
+  function handleTouchEnd(e: React.TouchEvent<HTMLCanvasElement>) {
+    const start = touchStartRef.current;
+    const t = e.changedTouches[0];
+    touchStartRef.current = null;
+    if (!start || !t) return;
+
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    const absX = Math.abs(dx);
+    const absY = Math.abs(dy);
+
+    if (Math.max(absX, absY) < MIN_SWIPE_PX) {
+      return;
+    }
+
+    if (absX > absY) {
+      queueDirection(dx > 0 ? { x: 1, y: 0 } : { x: -1, y: 0 });
+    } else {
+      queueDirection(dy > 0 ? { x: 0, y: 1 } : { x: 0, y: -1 });
+    }
+  }
+
   // Simple UI controls (nice for mobile + accessibility)
   return (
     <div className="flex flex-col items-center gap-4 w-full">
@@ -310,10 +363,22 @@ export default function SnakeGame() {
         className="w-full max-w-[600px] h-auto rounded-xl border border-white/15"
         style={{
           imageRendering: "pixelated",
+          touchAction: "none",
         }}
         tabIndex={0}
         aria-label="Snake game canvas"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={() => {
+          touchStartRef.current = null;
+        }}
       />
+      {ui.highScore >= SECRET_THRESHOLD ? (
+        <p className="max-w-[600px] text-center text-sm font-medium text-emerald-300">
+          Congratulations for getting this far, your secret codeword is GUMDROP
+        </p>
+      ) : null}
       <div className="flex flex-wrap gap-3 items-center justify-center text-sm">
         <button 
           onClick={() => resetGame()}
@@ -339,7 +404,7 @@ export default function SnakeGame() {
           Clear High Score
         </button>
         <span className="text-gray-400">
-          Controls: Arrows/WASD • Wrap walls • High score saved
+          Controls: Arrows/WASD or swipe on the canvas • Wrap walls • High score saved
         </span>
       </div>
     </div>

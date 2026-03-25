@@ -113,17 +113,13 @@ export const projects: Project[] = [
   {
     id: "snake",
     title: "Snake",
-    description: "Problem: Classic game recreation | Role: Solo Developer | Stack: React, TypeScript, Canvas API | Outcome: Playable browser-based Snake game",
+    description: "This challenge hides a clue in plain sight. Reach the required score to unlock the secret codeword.",
     category: "Video Games",
     technologies: ["React", "TypeScript", "Canvas API"],
     sections: [
       {
         type: "text",
-        content: "A modern recreation of the classic Snake game built with React and TypeScript. The game features smooth canvas-based rendering, responsive controls, and persistent high score tracking using localStorage. The implementation uses refs to optimize performance by avoiding unnecessary re-renders during the game loop."
-      },
-      {
-        type: "text",
-        content: "The game includes wrap-around walls, allowing the snake to pass through screen edges, and features a fixed timestep movement system for consistent gameplay. Players can pause/resume the game and restart at any time. The high score is automatically saved and persists across browser sessions."
+        content: "A hidden clue is waiting for anyone skilled enough to earn at least 50 points. Keep going until the message appears beneath the game."
       },
       {
         type: "game",
