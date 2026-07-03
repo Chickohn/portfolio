@@ -71,3 +71,47 @@ export const normalizeDDMMYYYY = (value: string): string => {
   const [d, m, y] = value.split("-").map(Number);
   return `${String(d).padStart(2, "0")}-${String(m).padStart(2, "0")}-${y}`;
 };
+
+const parseDDMMYYYY = (value: string): Date | null => {
+  if (!isValidDDMMYYYY(value)) {
+    return null;
+  }
+
+  const [d, m, y] = value.split("-").map(Number);
+  return new Date(y, m - 1, d);
+};
+
+/** Format dd-mm-yyyy as "15 June 2026" for PDF display */
+export const formatDateLong = (value: string): string => {
+  const date = parseDDMMYYYY(value);
+  if (!date) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+};
+
+/** Day name from dd-mm-yyyy, e.g. "Monday" */
+export const getDayNameFromDDMMYYYY = (value: string): string => {
+  const date = parseDDMMYYYY(value);
+  if (!date) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat("en-GB", { weekday: "long" }).format(date);
+};
+
+/** Add days to a dd-mm-yyyy date string */
+export const addDaysToDDMMYYYY = (value: string, days: number): string => {
+  const date = parseDDMMYYYY(value);
+  if (!date) {
+    return value;
+  }
+
+  date.setDate(date.getDate() + days);
+  return formatDateToDDMMYYYY(date);
+};

@@ -1,7 +1,20 @@
 export type DocumentType = "Estimate" | "Invoice";
 
+export type DocumentPreset = "garage" | "contractor" | "custom";
+
+export interface SectionToggles {
+  vehicle: boolean;
+  workPeriod: boolean;
+  workedDays: boolean;
+  paymentDetails: boolean;
+  shipping: boolean;
+  lineItemDiscount: boolean;
+  lineItemVat: boolean;
+}
+
 export interface CompanyProfile {
   name: string;
+  tagline?: string;
   addressLines: string[];
   phone: string;
   email: string;
@@ -23,12 +36,39 @@ export interface VehicleDetails {
   mileage?: string;
 }
 
+export interface WorkPeriod {
+  startDate: string;
+  endDate: string;
+  summaryLine: string;
+}
+
+export interface WorkedDayEntry {
+  id: string;
+  date: string;
+  dayName: string;
+  days: number;
+  rate: number;
+}
+
+export interface PaymentDetails {
+  title: string;
+  lines: string[];
+}
+
+export interface CustomSection {
+  id: string;
+  title: string;
+  lines: string[];
+  enabled: boolean;
+}
+
 export interface DocumentMeta {
   docType: DocumentType;
   docNumberPrefix: string;
   docNumber: number;
   reference: string;
   issueDate: string;
+  dueDate: string;
   currency: "GBP";
 }
 
@@ -50,14 +90,22 @@ export interface Charges {
 }
 
 export interface GarageEstimateDraft {
+  preset: DocumentPreset;
+  sectionToggles: SectionToggles;
   companyProfile: CompanyProfile;
   clientDetails: ClientDetails;
   vehicleDetails: VehicleDetails;
+  workPeriod: WorkPeriod;
+  workedDays: WorkedDayEntry[];
+  paymentDetails: PaymentDetails;
+  customSections: CustomSection[];
   documentMeta: DocumentMeta;
   /** When false, document meta section is greyed out and omitted from PDF */
   includeDocumentMeta: boolean;
   /** When false, shipping is excluded from totals and omitted from PDF */
   includeShipping: boolean;
+  /** Show "Not VAT registered" on PDF instead of a VAT amount */
+  vatNotRegistered: boolean;
   lineItems: LineItem[];
   charges: Charges;
   notesTerms: string;

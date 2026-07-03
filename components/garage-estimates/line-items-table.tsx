@@ -11,6 +11,8 @@ import { LineItem, LineItemValidationErrors, VatRate } from "@/lib/garage-estima
 interface LineItemsTableProps {
   lineItems: LineItem[];
   lineItemErrors: Record<string, LineItemValidationErrors>;
+  showDiscount: boolean;
+  showVat: boolean;
   onAddLineItem: () => void;
   onClearAllLineItems: () => void;
   onRemoveLineItem: (id: string) => void;
@@ -31,6 +33,8 @@ const parseNumber = (value: string): number => {
 export function LineItemsTable({
   lineItems,
   lineItemErrors,
+  showDiscount,
+  showVat,
   onAddLineItem,
   onClearAllLineItems,
   onRemoveLineItem,
@@ -65,12 +69,12 @@ export function LineItemsTable({
       <div className="overflow-x-auto rounded-xl border border-slate-200 xl:overflow-visible">
         <table className="min-w-[860px] w-full table-fixed border-collapse text-sm lg:min-w-0">
           <colgroup>
-            <col style={{ width: "35%" }} />
-            <col style={{ width: "7%" }} />
-            <col style={{ width: "11%" }} />
-            <col style={{ width: "18%" }} />
+            <col style={{ width: showDiscount && showVat ? "35%" : showDiscount || showVat ? "42%" : "48%" }} />
             <col style={{ width: "8%" }} />
-            <col style={{ width: "11%" }} />
+            <col style={{ width: "12%" }} />
+            {showDiscount ? <col style={{ width: "18%" }} /> : null}
+            {showVat ? <col style={{ width: "8%" }} /> : null}
+            <col style={{ width: "12%" }} />
             <col style={{ width: "10%" }} />
           </colgroup>
           <thead className="bg-slate-100 text-slate-700">
@@ -84,12 +88,16 @@ export function LineItemsTable({
               <th scope="col" className="border-b border-slate-200 px-2 py-3 text-left font-medium">
                 Rate
               </th>
-              <th scope="col" className="border-b border-slate-200 px-2 py-3 text-left font-medium">
-                Discount
-              </th>
-              <th scope="col" className="border-b border-slate-200 px-2 py-3 text-center font-medium">
-                VAT
-              </th>
+              {showDiscount ? (
+                <th scope="col" className="border-b border-slate-200 px-2 py-3 text-left font-medium">
+                  Discount
+                </th>
+              ) : null}
+              {showVat ? (
+                <th scope="col" className="border-b border-slate-200 px-2 py-3 text-center font-medium">
+                  VAT
+                </th>
+              ) : null}
               <th scope="col" className="border-b border-slate-200 px-3 py-3 text-right font-medium">
                 Amount
               </th>
@@ -118,7 +126,7 @@ export function LineItemsTable({
                       }
                       onBlur={() => onClampLineItem(lineItem.id)}
                       rows={2}
-                      placeholder="Describe labour, parts, diagnostics..."
+                      placeholder="Describe labour, services, parts..."
                       className="w-full resize-none rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
                     />
                     {hasError ? (
@@ -162,6 +170,7 @@ export function LineItemsTable({
                     {errors.rate ? <p className="mt-1 text-xs text-red-600">{errors.rate}</p> : null}
                   </td>
 
+                  {showDiscount ? (
                   <td className="border-b border-slate-200 px-2 py-3 align-middle">
                     <div className="space-y-1.5">
                       <select
@@ -197,7 +206,9 @@ export function LineItemsTable({
                       <p className="mt-1 text-xs text-red-600">{errors.discountValue}</p>
                     ) : null}
                   </td>
+                  ) : null}
 
+                  {showVat ? (
                   <td className="border-b border-slate-200 px-2 py-3 align-middle">
                     <div className="flex justify-center">
                       <select
@@ -218,6 +229,7 @@ export function LineItemsTable({
                       </select>
                     </div>
                   </td>
+                  ) : null}
 
                   <td className="border-b border-slate-200 px-3 py-3 align-middle text-right font-medium tabular-nums text-slate-900 whitespace-nowrap">
                     {formatCurrency(computed.net)}

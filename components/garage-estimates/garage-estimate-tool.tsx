@@ -20,6 +20,8 @@ import {
   validateLineItem,
 } from "@/lib/garage-estimates/calculations";
 import {
+  applyPresetToggles,
+  createCustomSectionId,
   createDefaultDraft,
   createDefaultLineItem,
 } from "@/lib/garage-estimates/constants";
@@ -39,9 +41,10 @@ import {
   loadDraftFromStorage,
   saveDraftToStorage,
 } from "@/lib/garage-estimates/storage";
-import { GarageEstimateDraft, LineItem } from "@/lib/garage-estimates/types";
+import { GarageEstimateDraft, LineItem, SectionToggles } from "@/lib/garage-estimates/types";
 import { LineItemsTable } from "./line-items-table";
 import { TotalsPanel } from "./totals-panel";
+import { WorkedDaysTable } from "./worked-days-table";
 
 type NoticeType = "success" | "error" | "info";
 
@@ -113,13 +116,21 @@ export function GarageEstimateTool() {
   }, [draft.lineItems]);
 
   const shippingError =
-    draft.includeShipping && draft.charges.shipping < 0
+    draft.includeShipping &&
+    draft.sectionToggles.shipping &&
+    draft.charges.shipping < 0
       ? "Shipping cannot be negative."
       : undefined;
 
   const totals = useMemo(
-    () => calculateTotals(draft.lineItems, draft.includeShipping ? draft.charges.shipping : 0),
-    [draft.lineItems, draft.charges.shipping, draft.includeShipping]
+    () =>
+      calculateTotals(
+        draft.lineItems,
+        draft.includeShipping && draft.sectionToggles.shipping
+          ? draft.charges.shipping
+          : 0
+      ),
+    [draft.lineItems, draft.charges.shipping, draft.includeShipping, draft.sectionToggles.shipping]
   );
 
   const validationCount = useMemo(() => {
@@ -158,6 +169,35 @@ export function GarageEstimateTool() {
     }));
   };
 
+  const updateSectionToggles = (patch: Partial<SectionToggles>): void => {
+    updateDraft((previous) => ({
+      ...previous,
+      preset: "custom",
+      sectionToggles: {
+        ...previous.sectionToggles,
+        ...patch,
+      },
+    }));
+  };
+
+  const handlePresetChange = (preset: GarageEstimateDraft["preset"]) => {
+    if (preset === draft.preset) {
+      return;
+    }
+
+    const confirmed =
+      preset === "custom" ||
+      window.confirm(
+        "Apply this template? Your section visibility and some defaults will update, but your entered data will be kept."
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    updateDraft((previous) => applyPresetToggles(previous, preset));
+  };
+
   const updateVehicleDetails = (
     patch: Partial<GarageEstimateDraft["vehicleDetails"]>
   ): void => {
@@ -169,6 +209,16 @@ export function GarageEstimateTool() {
       },
     }));
   };
+
+  const sectionToggleItems: Array<{ key: keyof SectionToggles; label: string; hint: string }> = [
+    { key: "vehicle", label: "Vehicle details", hint: "Make, registration, mileage" },
+    { key: "workPeriod", label: "Work period", hint: "Date range and summary line" },
+    { key: "workedDays", label: "Worked days schedule", hint: "Day-by-day breakdown table" },
+    { key: "paymentDetails", label: "Payment details", hint: "Bank transfer instructions" },
+    { key: "shipping", label: "Shipping charge", hint: "Optional non-VAT shipping line" },
+    { key: "lineItemDiscount", label: "Line item discounts", hint: "Percent or fixed discounts" },
+    { key: "lineItemVat", label: "Line item VAT", hint: "Per-line VAT rate column" },
+  ];
 
   const updateDocumentMeta = (
     patch: Partial<GarageEstimateDraft["documentMeta"]>
@@ -400,11 +450,12 @@ export function GarageEstimateTool() {
       <div className="mx-auto max-w-[1720px] px-4 py-8 sm:px-6 lg:px-8 2xl:px-10">
         <header className="rounded-2xl border border-slate-700 bg-slate-900/80 p-5 text-slate-100 shadow-sm backdrop-blur-sm">
           <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            Garage Estimate / Invoice PDF Generator
+            Estimate & Invoice PDF Generator
           </h1>
           <p className="mt-2 max-w-3xl text-sm text-slate-300 sm:text-base">
-            Build professional estimates or invoices with line items, VAT, totals, and
-            customer details. Everything runs in your browser with local autosave.
+            Build professional estimates or invoices for garage work, contracting, or any
+            custom layout. Toggle sections, add worked-day schedules, and export polished
+            PDFs — all in your browser with local autosave.
           </p>
 
           <div className="mt-4 flex flex-wrap gap-2">
@@ -472,6 +523,68 @@ export function GarageEstimateTool() {
           <div className="space-y-6 lg:min-h-0">
             <Card className="border-slate-200 bg-white text-slate-900">
               <CardHeader>
+                <CardTitle>Template</CardTitle>
+                <CardDescription>
+                  Start from a preset, then fine-tune which sections appear on the PDF.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {[
+                    { value: "garage", label: "Garage", description: "Vehicle work, parts, shipping" },
+                    {
+                      value: "contractor",
+                      label: "Contractor",
+                      description: "Invoices with work period and schedule",
+                    },
+                    { value: "custom", label: "Custom", description: "Choose your own sections" },
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() =>
+                        handlePresetChange(option.value as GarageEstimateDraft["preset"])
+                      }
+                      className={`rounded-xl border px-4 py-3 text-left transition ${
+                        draft.preset === option.value
+                          ? "border-blue-600 bg-blue-50 ring-1 ring-blue-600"
+                          : "border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white"
+                      }`}
+                    >
+                      <p className="font-medium text-slate-900">{option.label}</p>
+                      <p className="mt-1 text-xs text-slate-500">{option.description}</p>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {sectionToggleItems.map((item) => (
+                    <label
+                      key={item.key}
+                      className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-slate-50/70 px-3 py-3"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={draft.sectionToggles[item.key]}
+                        onChange={(event) =>
+                          updateSectionToggles({ [item.key]: event.target.checked })
+                        }
+                        className="mt-0.5 h-4 w-4 rounded border-slate-300"
+                      />
+                      <span>
+                        <span className="block text-sm font-medium text-slate-900">
+                          {item.label}
+                        </span>
+                        <span className="block text-xs text-slate-500">{item.hint}</span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-slate-200 bg-white text-slate-900">
+              <CardHeader>
                 <CardTitle>Company Profile</CardTitle>
                 <CardDescription>
                   These details appear in the PDF header.
@@ -480,14 +593,26 @@ export function GarageEstimateTool() {
               <CardContent className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="company-name">Company Name</Label>
+                    <Label htmlFor="company-name">Company / Name</Label>
                     <Input
                       id="company-name"
                       value={draft.companyProfile.name}
                       onChange={(event) =>
                         updateCompanyProfile({ name: event.target.value })
                       }
-                      placeholder="Garage name"
+                      placeholder="Your business or name"
+                    />
+                  </div>
+
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="company-tagline">Tagline (Optional)</Label>
+                    <Input
+                      id="company-tagline"
+                      value={draft.companyProfile.tagline ?? ""}
+                      onChange={(event) =>
+                        updateCompanyProfile({ tagline: event.target.value })
+                      }
+                      placeholder="Self-employed contractor"
                     />
                   </div>
 
@@ -612,7 +737,7 @@ export function GarageEstimateTool() {
             <div className="grid gap-6 md:grid-cols-2">
               <Card className="border-slate-200 bg-white text-slate-900">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                  <CardTitle>Bill To + Vehicle</CardTitle>
+                  <CardTitle>Bill To</CardTitle>
                   <Button
                     type="button"
                     variant="ghost"
@@ -624,7 +749,6 @@ export function GarageEstimateTool() {
                         return {
                           ...previous,
                           clientDetails: defaults.clientDetails,
-                          vehicleDetails: defaults.vehicleDetails,
                         };
                       })
                     }
@@ -698,47 +822,7 @@ export function GarageEstimateTool() {
                       }
                       rows={2}
                       className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm outline-none transition focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
-                      placeholder="PO number, preferred contact window, etc."
-                    />
-                  </div>
-
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="vehicle-model">Vehicle Make / Model</Label>
-                      <Input
-                        id="vehicle-model"
-                        value={draft.vehicleDetails.makeModel}
-                        onChange={(event) =>
-                          updateVehicleDetails({ makeModel: event.target.value })
-                        }
-                        placeholder="Ford Focus"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="vehicle-reg">Registration</Label>
-                      <Input
-                        id="vehicle-reg"
-                        value={draft.vehicleDetails.registration}
-                        onChange={(event) =>
-                          updateVehicleDetails({
-                            registration: event.target.value.toUpperCase(),
-                          })
-                        }
-                        placeholder="AB12 CDE"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="vehicle-mileage">Mileage (Optional)</Label>
-                    <Input
-                      id="vehicle-mileage"
-                      value={draft.vehicleDetails.mileage}
-                      onChange={(event) =>
-                        updateVehicleDetails({ mileage: event.target.value })
-                      }
-                      placeholder="89,120"
+                      placeholder="PO number, project name, etc."
                     />
                   </div>
                 </CardContent>
@@ -858,6 +942,32 @@ export function GarageEstimateTool() {
                   </div>
 
                   <div className="space-y-2">
+                    <Label htmlFor="due-date">Payment Due (Optional)</Label>
+                    <Input
+                      id="due-date"
+                      type="text"
+                      value={draft.documentMeta.dueDate}
+                      onChange={(event) =>
+                        updateDocumentMeta({ dueDate: event.target.value })
+                      }
+                      onBlur={() => {
+                        const current = draft.documentMeta.dueDate.trim();
+                        if (!current) {
+                          return;
+                        }
+                        if (!isValidDDMMYYYY(current)) {
+                          updateDocumentMeta({ dueDate: "" });
+                        } else {
+                          updateDocumentMeta({ dueDate: normalizeDDMMYYYY(current) });
+                        }
+                      }}
+                      placeholder="dd-mm-yyyy"
+                      disabled={!draft.includeDocumentMeta}
+                      className="disabled:cursor-not-allowed"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="doc-reference">Reference</Label>
                     <Input
                       id="doc-reference"
@@ -878,11 +988,292 @@ export function GarageEstimateTool() {
               </Card>
             </div>
 
+            {draft.sectionToggles.vehicle ? (
+              <Card className="border-slate-200 bg-white text-slate-900">
+                <CardHeader>
+                  <CardTitle>Vehicle</CardTitle>
+                  <CardDescription>Shown on the PDF when vehicle details are enabled.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="vehicle-model">Make / Model</Label>
+                    <Input
+                      id="vehicle-model"
+                      value={draft.vehicleDetails.makeModel}
+                      onChange={(event) =>
+                        updateVehicleDetails({ makeModel: event.target.value })
+                      }
+                      placeholder="Ford Focus"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="vehicle-reg">Registration</Label>
+                    <Input
+                      id="vehicle-reg"
+                      value={draft.vehicleDetails.registration}
+                      onChange={(event) =>
+                        updateVehicleDetails({
+                          registration: event.target.value.toUpperCase(),
+                        })
+                      }
+                      placeholder="AB12 CDE"
+                    />
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="vehicle-mileage">Mileage (Optional)</Label>
+                    <Input
+                      id="vehicle-mileage"
+                      value={draft.vehicleDetails.mileage}
+                      onChange={(event) =>
+                        updateVehicleDetails({ mileage: event.target.value })
+                      }
+                      placeholder="89,120"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            ) : null}
+
+            {draft.sectionToggles.workPeriod ? (
+              <Card className="border-slate-200 bg-white text-slate-900">
+                <CardHeader>
+                  <CardTitle>Work Period</CardTitle>
+                  <CardDescription>Date range and summary line for contracting invoices.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="work-start">Start date</Label>
+                    <Input
+                      id="work-start"
+                      value={draft.workPeriod.startDate}
+                      onChange={(event) =>
+                        updateDraft((previous) => ({
+                          ...previous,
+                          workPeriod: {
+                            ...previous.workPeriod,
+                            startDate: event.target.value,
+                          },
+                        }))
+                      }
+                      placeholder="dd-mm-yyyy"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="work-end">End date</Label>
+                    <Input
+                      id="work-end"
+                      value={draft.workPeriod.endDate}
+                      onChange={(event) =>
+                        updateDraft((previous) => ({
+                          ...previous,
+                          workPeriod: {
+                            ...previous.workPeriod,
+                            endDate: event.target.value,
+                          },
+                        }))
+                      }
+                      placeholder="dd-mm-yyyy"
+                    />
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="work-summary">Summary line</Label>
+                    <Input
+                      id="work-summary"
+                      value={draft.workPeriod.summaryLine}
+                      onChange={(event) =>
+                        updateDraft((previous) => ({
+                          ...previous,
+                          workPeriod: {
+                            ...previous.workPeriod,
+                            summaryLine: event.target.value,
+                          },
+                        }))
+                      }
+                      placeholder="Daily rate: £134.62"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            ) : null}
+
+            {draft.sectionToggles.workedDays ? (
+              <Card className="border-slate-200 bg-white text-slate-900">
+                <CardContent className="pt-6">
+                  <WorkedDaysTable
+                    workedDays={draft.workedDays}
+                    onChange={(workedDays) =>
+                      updateDraft((previous) => ({ ...previous, workedDays }))
+                    }
+                  />
+                </CardContent>
+              </Card>
+            ) : null}
+
+            {draft.sectionToggles.paymentDetails ? (
+              <Card className="border-slate-200 bg-white text-slate-900">
+                <CardHeader>
+                  <CardTitle>Payment Details</CardTitle>
+                  <CardDescription>Bank details and payment instructions for the PDF.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="payment-title">Section title</Label>
+                    <Input
+                      id="payment-title"
+                      value={draft.paymentDetails.title}
+                      onChange={(event) =>
+                        updateDraft((previous) => ({
+                          ...previous,
+                          paymentDetails: {
+                            ...previous.paymentDetails,
+                            title: event.target.value,
+                          },
+                        }))
+                      }
+                      placeholder="Payment details"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="payment-lines">Payment instructions</Label>
+                    <textarea
+                      id="payment-lines"
+                      value={draft.paymentDetails.lines.join("\n")}
+                      onChange={(event) =>
+                        updateDraft((previous) => ({
+                          ...previous,
+                          paymentDetails: {
+                            ...previous.paymentDetails,
+                            lines: event.target.value.split(/\r?\n/),
+                          },
+                        }))
+                      }
+                      rows={5}
+                      className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm outline-none transition focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
+                      placeholder={"Please pay by bank transfer.\nAccount name:\nSort code:\nAccount number:\nReference:"}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            ) : null}
+
+            <Card className="border-slate-200 bg-white text-slate-900">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <div>
+                  <CardTitle>Custom Sections</CardTitle>
+                  <CardDescription>Optional extra blocks on the PDF.</CardDescription>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    updateDraft((previous) => ({
+                      ...previous,
+                      customSections: [
+                        ...previous.customSections,
+                        {
+                          id: createCustomSectionId(),
+                          title: "Additional details",
+                          lines: [""],
+                          enabled: true,
+                        },
+                      ],
+                    }))
+                  }
+                >
+                  Add section
+                </Button>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {draft.customSections.length === 0 ? (
+                  <p className="text-sm text-slate-500">No custom sections added.</p>
+                ) : (
+                  draft.customSections.map((section) => (
+                    <div
+                      key={section.id}
+                      className="rounded-lg border border-slate-200 bg-slate-50/70 p-4"
+                    >
+                      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                        <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                          <input
+                            type="checkbox"
+                            checked={section.enabled}
+                            onChange={(event) =>
+                              updateDraft((previous) => ({
+                                ...previous,
+                                customSections: previous.customSections.map((item) =>
+                                  item.id === section.id
+                                    ? { ...item, enabled: event.target.checked }
+                                    : item
+                                ),
+                              }))
+                            }
+                            className="h-4 w-4 rounded border-slate-300"
+                          />
+                          Include on PDF
+                        </label>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                          onClick={() =>
+                            updateDraft((previous) => ({
+                              ...previous,
+                              customSections: previous.customSections.filter(
+                                (item) => item.id !== section.id
+                              ),
+                            }))
+                          }
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                      <div className="space-y-3">
+                        <Input
+                          value={section.title}
+                          onChange={(event) =>
+                            updateDraft((previous) => ({
+                              ...previous,
+                              customSections: previous.customSections.map((item) =>
+                                item.id === section.id
+                                  ? { ...item, title: event.target.value }
+                                  : item
+                              ),
+                            }))
+                          }
+                          placeholder="Section title"
+                        />
+                        <textarea
+                          value={section.lines.join("\n")}
+                          onChange={(event) =>
+                            updateDraft((previous) => ({
+                              ...previous,
+                              customSections: previous.customSections.map((item) =>
+                                item.id === section.id
+                                  ? { ...item, lines: event.target.value.split(/\r?\n/) }
+                                  : item
+                              ),
+                            }))
+                          }
+                          rows={3}
+                          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm outline-none transition focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
+                          placeholder="One line per row"
+                        />
+                      </div>
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+
             <Card className="border-slate-200 bg-white text-slate-900">
               <CardContent className="pt-6">
                 <LineItemsTable
                   lineItems={draft.lineItems}
                   lineItemErrors={lineItemErrors}
+                  showDiscount={draft.sectionToggles.lineItemDiscount}
+                  showVat={draft.sectionToggles.lineItemVat}
                   onAddLineItem={onAddLineItem}
                   onClearAllLineItems={onClearAllLineItems}
                   onRemoveLineItem={onRemoveLineItem}
@@ -950,11 +1341,20 @@ export function GarageEstimateTool() {
               totals={totals}
               shipping={draft.charges.shipping}
               includeShipping={draft.includeShipping}
+              showShipping={draft.sectionToggles.shipping}
+              vatNotRegistered={draft.vatNotRegistered}
+              docType={draft.documentMeta.docType}
               shippingError={shippingError}
               onToggleShipping={(value) =>
                 updateDraft((previous) => ({
                   ...previous,
                   includeShipping: value,
+                }))
+              }
+              onToggleVatNotRegistered={(value) =>
+                updateDraft((previous) => ({
+                  ...previous,
+                  vatNotRegistered: value,
                 }))
               }
               onShippingChange={(value) =>

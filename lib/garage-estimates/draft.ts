@@ -1,14 +1,25 @@
 import { clampLineItemValues, clampShippingValue } from "./calculations";
-import { createDefaultDraft, createDefaultLineItem } from "./constants";
+import {
+  createCustomSectionId,
+  createDefaultDraft,
+  createDefaultLineItem,
+  createWorkedDayId,
+} from "./constants";
 import {
   ClientDetails,
   CompanyProfile,
+  CustomSection,
   DiscountType,
+  DocumentPreset,
   DocumentType,
   GarageEstimateDraft,
   LineItem,
+  PaymentDetails,
+  SectionToggles,
   VehicleDetails,
   VatRate,
+  WorkedDayEntry,
+  WorkPeriod,
 } from "./types";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -40,8 +51,19 @@ const toNumberValue = (value: unknown, fallback = 0): number => {
   return fallback;
 };
 
+const toBooleanValue = (value: unknown, fallback: boolean): boolean =>
+  typeof value === "boolean" ? value : fallback;
+
 const toDocumentType = (value: unknown): DocumentType =>
   value === "Invoice" ? "Invoice" : "Estimate";
+
+const toDocumentPreset = (value: unknown): DocumentPreset => {
+  if (value === "contractor" || value === "custom" || value === "garage") {
+    return value;
+  }
+
+  return "garage";
+};
 
 const toDiscountType = (value: unknown): DiscountType => {
   if (value === "percent" || value === "fixed" || value === "none") {
@@ -88,6 +110,7 @@ const normalizeCompanyProfile = (
 
   return {
     name: toStringValue(value.name, fallback.name),
+    tagline: toStringValue(value.tagline, fallback.tagline ?? ""),
     addressLines: toStringArray(value.addressLines),
     phone: toStringValue(value.phone, fallback.phone),
     email: toStringValue(value.email, fallback.email),
@@ -128,6 +151,97 @@ const normalizeVehicleDetails = (
   };
 };
 
+const normalizeWorkPeriod = (value: unknown, fallback: WorkPeriod): WorkPeriod => {
+  if (!isRecord(value)) {
+    return fallback;
+  }
+
+  return {
+    startDate: toIssueDate(value.startDate, fallback.startDate),
+    endDate: toIssueDate(value.endDate, fallback.endDate),
+    summaryLine: toStringValue(value.summaryLine, fallback.summaryLine),
+  };
+};
+
+const normalizeWorkedDay = (value: unknown): WorkedDayEntry => {
+  const fallback: WorkedDayEntry = {
+    id: createWorkedDayId(),
+    date: "",
+    dayName: "",
+    days: 1,
+    rate: 0,
+  };
+
+  if (!isRecord(value)) {
+    return fallback;
+  }
+
+  return {
+    id: toStringValue(value.id, fallback.id),
+    date: toIssueDate(value.date, ""),
+    dayName: toStringValue(value.dayName, ""),
+    days: Math.max(0, toNumberValue(value.days, 1)),
+    rate: Math.max(0, toNumberValue(value.rate, 0)),
+  };
+};
+
+const normalizePaymentDetails = (
+  value: unknown,
+  fallback: PaymentDetails
+): PaymentDetails => {
+  if (!isRecord(value)) {
+    return fallback;
+  }
+
+  const lines = toStringArray(value.lines);
+
+  return {
+    title: toStringValue(value.title, fallback.title),
+    lines: lines.length > 0 ? lines : fallback.lines,
+  };
+};
+
+const normalizeCustomSection = (value: unknown): CustomSection => {
+  const fallback: CustomSection = {
+    id: createCustomSectionId(),
+    title: "Additional details",
+    lines: [""],
+    enabled: true,
+  };
+
+  if (!isRecord(value)) {
+    return fallback;
+  }
+
+  const lines = toStringArray(value.lines);
+
+  return {
+    id: toStringValue(value.id, fallback.id),
+    title: toStringValue(value.title, fallback.title),
+    lines: lines.length > 0 ? lines : [""],
+    enabled: toBooleanValue(value.enabled, true),
+  };
+};
+
+const normalizeSectionToggles = (
+  value: unknown,
+  fallback: SectionToggles
+): SectionToggles => {
+  if (!isRecord(value)) {
+    return fallback;
+  }
+
+  return {
+    vehicle: toBooleanValue(value.vehicle, fallback.vehicle),
+    workPeriod: toBooleanValue(value.workPeriod, fallback.workPeriod),
+    workedDays: toBooleanValue(value.workedDays, fallback.workedDays),
+    paymentDetails: toBooleanValue(value.paymentDetails, fallback.paymentDetails),
+    shipping: toBooleanValue(value.shipping, fallback.shipping),
+    lineItemDiscount: toBooleanValue(value.lineItemDiscount, fallback.lineItemDiscount),
+    lineItemVat: toBooleanValue(value.lineItemVat, fallback.lineItemVat),
+  };
+};
+
 const normalizeLineItem = (value: unknown): LineItem => {
   const defaultLine = createDefaultLineItem();
 
@@ -156,10 +270,30 @@ export const normalizeGarageDraft = (input: unknown): GarageEstimateDraft => {
     ? input.lineItems.map(normalizeLineItem)
     : [];
 
+  const workedDaysRaw = Array.isArray(input.workedDays)
+    ? input.workedDays.map(normalizeWorkedDay)
+    : [];
+
+  const customSectionsRaw = Array.isArray(input.customSections)
+    ? input.customSections.map(normalizeCustomSection)
+    : [];
+
+  const preset = toDocumentPreset(input.preset);
+  const sectionToggles = normalizeSectionToggles(
+    input.sectionToggles,
+    fallback.sectionToggles
+  );
+
   return {
+    preset,
+    sectionToggles,
     companyProfile: normalizeCompanyProfile(input.companyProfile, fallback.companyProfile),
     clientDetails: normalizeClientDetails(input.clientDetails, fallback.clientDetails),
     vehicleDetails: normalizeVehicleDetails(input.vehicleDetails, fallback.vehicleDetails),
+    workPeriod: normalizeWorkPeriod(input.workPeriod, fallback.workPeriod),
+    workedDays: workedDaysRaw,
+    paymentDetails: normalizePaymentDetails(input.paymentDetails, fallback.paymentDetails),
+    customSections: customSectionsRaw,
     documentMeta: {
       docType: toDocumentType(isRecord(input.documentMeta) ? input.documentMeta.docType : null),
       docNumberPrefix: toStringValue(
@@ -183,6 +317,10 @@ export const normalizeGarageDraft = (input: unknown): GarageEstimateDraft => {
         isRecord(input.documentMeta) ? input.documentMeta.issueDate : null,
         fallback.documentMeta.issueDate
       ),
+      dueDate: toIssueDate(
+        isRecord(input.documentMeta) ? input.documentMeta.dueDate : null,
+        fallback.documentMeta.dueDate
+      ),
       currency: "GBP",
     },
     lineItems: lineItemsRaw.length > 0 ? lineItemsRaw : [createDefaultLineItem()],
@@ -195,14 +333,9 @@ export const normalizeGarageDraft = (input: unknown): GarageEstimateDraft => {
       ),
     },
     notesTerms: toStringValue(input.notesTerms, fallback.notesTerms),
-    includeDocumentMeta:
-      typeof input.includeDocumentMeta === "boolean"
-        ? input.includeDocumentMeta
-        : fallback.includeDocumentMeta,
-    includeShipping:
-      typeof input.includeShipping === "boolean"
-        ? input.includeShipping
-        : fallback.includeShipping,
+    includeDocumentMeta: toBooleanValue(input.includeDocumentMeta, fallback.includeDocumentMeta),
+    includeShipping: toBooleanValue(input.includeShipping, fallback.includeShipping),
+    vatNotRegistered: toBooleanValue(input.vatNotRegistered, fallback.vatNotRegistered),
   };
 };
 
