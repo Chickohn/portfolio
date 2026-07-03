@@ -5,6 +5,7 @@ import {
   createDefaultLineItem,
   createWorkedDayId,
 } from "./constants";
+import { normalizeOptionalDate } from "./format";
 import {
   ClientDetails,
   CompanyProfile,
@@ -157,8 +158,8 @@ const normalizeWorkPeriod = (value: unknown, fallback: WorkPeriod): WorkPeriod =
   }
 
   return {
-    startDate: toIssueDate(value.startDate, fallback.startDate),
-    endDate: toIssueDate(value.endDate, fallback.endDate),
+    startDate: normalizeOptionalDate(toStringValue(value.startDate, "")),
+    endDate: normalizeOptionalDate(toStringValue(value.endDate, "")),
     summaryLine: toStringValue(value.summaryLine, fallback.summaryLine),
   };
 };
@@ -178,7 +179,7 @@ const normalizeWorkedDay = (value: unknown): WorkedDayEntry => {
 
   return {
     id: toStringValue(value.id, fallback.id),
-    date: toIssueDate(value.date, ""),
+    date: normalizeOptionalDate(toStringValue(value.date, "")),
     dayName: toStringValue(value.dayName, ""),
     days: Math.max(0, toNumberValue(value.days, 1)),
     rate: Math.max(0, toNumberValue(value.rate, 0)),
@@ -313,13 +314,18 @@ export const normalizeGarageDraft = (input: unknown): GarageEstimateDraft => {
         isRecord(input.documentMeta) ? input.documentMeta.reference : null,
         fallback.documentMeta.reference
       ),
-      issueDate: toIssueDate(
-        isRecord(input.documentMeta) ? input.documentMeta.issueDate : null,
-        fallback.documentMeta.issueDate
-      ),
-      dueDate: toIssueDate(
-        isRecord(input.documentMeta) ? input.documentMeta.dueDate : null,
-        fallback.documentMeta.dueDate
+      issueDate:
+        normalizeOptionalDate(
+          toStringValue(
+            isRecord(input.documentMeta) ? input.documentMeta.issueDate : null,
+            fallback.documentMeta.issueDate
+          )
+        ) || fallback.documentMeta.issueDate,
+      dueDate: normalizeOptionalDate(
+        toStringValue(
+          isRecord(input.documentMeta) ? input.documentMeta.dueDate : null,
+          ""
+        )
       ),
       currency: "GBP",
     },

@@ -2,6 +2,7 @@
 
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/garage-estimates/date-picker";
 import { DecimalInput } from "@/components/garage-estimates/decimal-input";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,8 +10,6 @@ import { createWorkedDayId } from "@/lib/garage-estimates/constants";
 import {
   formatCurrency,
   getDayNameFromDDMMYYYY,
-  isValidDDMMYYYY,
-  normalizeDDMMYYYY,
 } from "@/lib/garage-estimates/format";
 import { WorkedDayEntry } from "@/lib/garage-estimates/types";
 
@@ -114,27 +113,16 @@ export function WorkedDaysTable({ workedDays, onChange }: WorkedDaysTableProps) 
               {workedDays.map((entry, index) => (
                 <tr key={entry.id} className="even:bg-slate-50/50">
                   <td className="border-b border-slate-200 px-3 py-3">
-                    <Input
+                    <DatePicker
                       value={entry.date}
-                      onChange={(event) => {
-                        const date = event.target.value;
+                      onChange={(date) =>
                         updateEntry(entry.id, {
                           date,
-                          dayName: isValidDDMMYYYY(date)
-                            ? getDayNameFromDDMMYYYY(date)
-                            : entry.dayName,
-                        });
-                      }}
-                      onBlur={() => {
-                        if (isValidDDMMYYYY(entry.date)) {
-                          updateEntry(entry.id, {
-                            date: normalizeDDMMYYYY(entry.date),
-                            dayName: getDayNameFromDDMMYYYY(entry.date),
-                          });
-                        }
-                      }}
-                      placeholder="dd-mm-yyyy"
-                      className="h-9"
+                          dayName: date ? getDayNameFromDDMMYYYY(date) : "",
+                        })
+                      }
+                      compact
+                      placeholder="Select date"
                     />
                   </td>
                   <td className="border-b border-slate-200 px-3 py-3">

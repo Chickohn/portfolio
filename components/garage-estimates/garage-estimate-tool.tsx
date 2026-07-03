@@ -28,11 +28,7 @@ import {
 import { normalizeGarageDraft, parseDraftJson } from "@/lib/garage-estimates/draft";
 import {
   buildPdfFilename,
-  formatDateToDDMMYYYY,
   fromAddressLines,
-  getTodayDDMMYYYY,
-  isValidDDMMYYYY,
-  normalizeDDMMYYYY,
   toAddressLines,
 } from "@/lib/garage-estimates/format";
 import { generateGaragePdf } from "@/lib/garage-estimates/pdf";
@@ -45,6 +41,8 @@ import { GarageEstimateDraft, LineItem, SectionToggles } from "@/lib/garage-esti
 import { LineItemsTable } from "./line-items-table";
 import { TotalsPanel } from "./totals-panel";
 import { WorkedDaysTable } from "./worked-days-table";
+import { DateRangePicker } from "./date-range-picker";
+import { DatePicker } from "./date-picker";
 
 type NoticeType = "success" | "error" | "info";
 
@@ -916,54 +914,25 @@ export function GarageEstimateTool() {
 
                   <div className="space-y-2">
                     <Label htmlFor="issue-date">Issue Date</Label>
-                    <Input
+                    <DatePicker
                       id="issue-date"
-                      type="text"
                       value={draft.documentMeta.issueDate}
-                      onChange={(event) =>
-                        updateDocumentMeta({ issueDate: event.target.value })
-                      }
-                      onBlur={() => {
-                        const current = draft.documentMeta.issueDate.trim();
-                        if (!current) {
-                          updateDocumentMeta({ issueDate: getTodayDDMMYYYY() });
-                          return;
-                        }
-                        if (!isValidDDMMYYYY(current)) {
-                          updateDocumentMeta({ issueDate: formatDateToDDMMYYYY(new Date()) });
-                        } else {
-                          updateDocumentMeta({ issueDate: normalizeDDMMYYYY(current) });
-                        }
-                      }}
-                      placeholder="dd-mm-yyyy"
+                      onChange={(issueDate) => updateDocumentMeta({ issueDate })}
                       disabled={!draft.includeDocumentMeta}
-                      className="disabled:cursor-not-allowed"
+                      compact
                     />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="due-date">Payment Due (Optional)</Label>
-                    <Input
+                    <DatePicker
                       id="due-date"
-                      type="text"
                       value={draft.documentMeta.dueDate}
-                      onChange={(event) =>
-                        updateDocumentMeta({ dueDate: event.target.value })
-                      }
-                      onBlur={() => {
-                        const current = draft.documentMeta.dueDate.trim();
-                        if (!current) {
-                          return;
-                        }
-                        if (!isValidDDMMYYYY(current)) {
-                          updateDocumentMeta({ dueDate: "" });
-                        } else {
-                          updateDocumentMeta({ dueDate: normalizeDDMMYYYY(current) });
-                        }
-                      }}
-                      placeholder="dd-mm-yyyy"
+                      onChange={(dueDate) => updateDocumentMeta({ dueDate })}
+                      allowClear
                       disabled={!draft.includeDocumentMeta}
-                      className="disabled:cursor-not-allowed"
+                      compact
+                      placeholder="No due date"
                     />
                   </div>
 
@@ -1040,42 +1009,21 @@ export function GarageEstimateTool() {
                   <CardTitle>Work Period</CardTitle>
                   <CardDescription>Date range and summary line for contracting invoices.</CardDescription>
                 </CardHeader>
-                <CardContent className="grid gap-4 sm:grid-cols-2">
+                <CardContent className="space-y-4">
+                  <DateRangePicker
+                    startDate={draft.workPeriod.startDate}
+                    endDate={draft.workPeriod.endDate}
+                    onChange={(range) =>
+                      updateDraft((previous) => ({
+                        ...previous,
+                        workPeriod: {
+                          ...previous.workPeriod,
+                          ...range,
+                        },
+                      }))
+                    }
+                  />
                   <div className="space-y-2">
-                    <Label htmlFor="work-start">Start date</Label>
-                    <Input
-                      id="work-start"
-                      value={draft.workPeriod.startDate}
-                      onChange={(event) =>
-                        updateDraft((previous) => ({
-                          ...previous,
-                          workPeriod: {
-                            ...previous.workPeriod,
-                            startDate: event.target.value,
-                          },
-                        }))
-                      }
-                      placeholder="dd-mm-yyyy"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="work-end">End date</Label>
-                    <Input
-                      id="work-end"
-                      value={draft.workPeriod.endDate}
-                      onChange={(event) =>
-                        updateDraft((previous) => ({
-                          ...previous,
-                          workPeriod: {
-                            ...previous.workPeriod,
-                            endDate: event.target.value,
-                          },
-                        }))
-                      }
-                      placeholder="dd-mm-yyyy"
-                    />
-                  </div>
-                  <div className="space-y-2 sm:col-span-2">
                     <Label htmlFor="work-summary">Summary line</Label>
                     <Input
                       id="work-summary"

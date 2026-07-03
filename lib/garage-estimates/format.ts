@@ -81,6 +81,59 @@ const parseDDMMYYYY = (value: string): Date | null => {
   return new Date(y, m - 1, d);
 };
 
+/** Parse dd-mm-yyyy to Date, or null */
+export const dateFromDDMMYYYY = parseDDMMYYYY;
+
+/** Compare two dd-mm-yyyy strings; negative if a < b */
+export const compareDDMMYYYY = (a: string, b: string): number => {
+  const dateA = parseDDMMYYYY(a);
+  const dateB = parseDDMMYYYY(b);
+  if (!dateA || !dateB) {
+    return 0;
+  }
+  return dateA.getTime() - dateB.getTime();
+};
+
+/** Try to normalize common date inputs to dd-mm-yyyy; returns "" if empty or unparseable */
+export const normalizeOptionalDate = (value: string): string => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return "";
+  }
+
+  if (isValidDDMMYYYY(trimmed)) {
+    return normalizeDDMMYYYY(trimmed);
+  }
+
+  const dashed = trimmed.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+  if (dashed) {
+    const [, d, m, y] = dashed;
+    const candidate = `${d.padStart(2, "0")}-${m.padStart(2, "0")}-${y}`;
+    if (isValidDDMMYYYY(candidate)) {
+      return candidate;
+    }
+  }
+
+  const slashed = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (slashed) {
+    const [, d, m, y] = slashed;
+    const candidate = `${d.padStart(2, "0")}-${m.padStart(2, "0")}-${y}`;
+    if (isValidDDMMYYYY(candidate)) {
+      return candidate;
+    }
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    const [y, m, d] = trimmed.split("-");
+    const candidate = `${d}-${m}-${y}`;
+    if (isValidDDMMYYYY(candidate)) {
+      return normalizeDDMMYYYY(candidate);
+    }
+  }
+
+  return "";
+};
+
 /** Format dd-mm-yyyy as "15 June 2026" for PDF display */
 export const formatDateLong = (value: string): string => {
   const date = parseDDMMYYYY(value);
