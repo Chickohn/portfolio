@@ -112,6 +112,30 @@ If you enable the **Sanity-backed projects + custom admin**, you must set the va
 - **Required**: No
 - **Description**: Secret required by `POST /api/revalidate` (header `x-revalidate-secret`)
 
+## Victoria private area
+
+See [Victoria Private Page](/home/freddie/Documents/Projects/portfolio/docs/victoria-private-page.md) for the full deployment guide.
+
+Required for `/victoria` production use:
+
+- `DATABASE_URL`
+- `VICTORIA_SESSION_SECRET`
+- `VICTORIA_TOKEN_HASH_SECRET`
+- `VICTORIA_ABLY_API_KEY`
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `VICTORIA_STORAGE_BUCKET`
+
+Optional:
+
+- `VICTORIA_FEATURE_ENABLED`
+- `VICTORIA_ALLOWED_HOSTS`
+- `VICTORIA_SESSION_DAYS`
+- `VICTORIA_ANALYTICS_RETENTION_DAYS`
+- `VICTORIA_UPLOAD_MAX_BYTES`
+- `VICTORIA_RATE_LIMIT_URL`
+- `VICTORIA_RATE_LIMIT_TOKEN`
+
 ## Development vs Production
 
 - **Development**: Uses relaxed security headers, verbose error messages

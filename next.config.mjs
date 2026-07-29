@@ -30,7 +30,45 @@ const nextConfig = {
     }
     return [
       {
-        source: '/(.*)',
+        source: '/victoria/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'private, no-store, max-age=0',
+          },
+          {
+            key: 'X-Robots-Tag',
+            value: 'noindex, nofollow, noarchive, nosnippet',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.ably.com",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: blob: https:",
+              "font-src 'self' data:",
+              "connect-src 'self' https://*.ably.io wss://*.ably.io https://*.ably.com wss://*.ably.com https://*.supabase.co",
+              "media-src 'self' https://*.supabase.co",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "frame-ancestors 'none'",
+              "upgrade-insecure-requests"
+            ].join('; ')
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'no-referrer',
+          },
+        ],
+      },
+      {
+        source: '/((?!victoria(?:/|$)).*)',
         headers: [
           // Content Security Policy
           {

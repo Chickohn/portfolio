@@ -4,10 +4,10 @@ User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /_next/
+Disallow: /victoria/
 
 # Sitemap
 Sitemap: https://kohn.me.uk/sitemap.xml
 
 # Crawl-delay (optional, adjust as needed)
 Crawl-delay: 1
-
