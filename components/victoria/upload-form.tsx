@@ -6,15 +6,22 @@ import { ImagePlus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
-export function VictoriaUploadForm({ memoryId }: { memoryId?: string }) {
+type Props = {
+  memoryId?: string;
+  /** Called right after a successful upload, so the parent can close this
+   * form. Without it the form stayed open post-upload with nothing to stop a
+   * stray double-click or a forgotten re-submit from uploading the same photo
+   * twice. */
+  onUploaded?: () => void;
+};
+
+export function VictoriaUploadForm({ memoryId, onUploaded }: Props) {
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
   function upload(formData: FormData) {
     setError(null);
-    setSuccess(null);
     if (memoryId) {
       formData.set("memoryId", memoryId);
     }
@@ -31,9 +38,10 @@ export function VictoriaUploadForm({ memoryId }: { memoryId?: string }) {
         return;
       }
 
-      setSuccess("Saved privately.");
-      // Re-render the server component instead of asking for a full reload.
+      // Re-render the server component instead of asking for a full reload,
+      // then let the parent close this form now that the photo is saved.
       router.refresh();
+      onUploaded?.();
     });
   }
 
@@ -56,7 +64,6 @@ export function VictoriaUploadForm({ memoryId }: { memoryId?: string }) {
         Upload
       </Button>
       {error ? <p className="mt-2 text-sm text-red-700">{error}</p> : null}
-      {success ? <p className="mt-2 text-sm text-emerald-800">{success}</p> : null}
     </form>
   );
 }

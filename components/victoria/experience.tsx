@@ -92,6 +92,19 @@ export function VictoriaExperience({
     });
   }
 
+  // Closes the form outright rather than toggling, so a successful upload
+  // can't accidentally reopen it if it were somehow already closed.
+  function closeUploadFor(memoryId: string) {
+    setOpenUploadIds((current) => {
+      if (!current.has(memoryId)) {
+        return current;
+      }
+      const next = new Set(current);
+      next.delete(memoryId);
+      return next;
+    });
+  }
+
   // Group once instead of filtering the whole media array per memory.
   const mediaByMemory = new Map<string, MediaItem[]>();
   for (const item of media) {
@@ -133,7 +146,7 @@ export function VictoriaExperience({
             </h1>
           </div>
           <p className="mt-4 max-w-xl text-pretty text-base leading-7 text-stone-700">
-            I thought I'd make this for when we miss each other or you want to send me a message in secret
+            I thought I'd make this for when we miss each other or you want to send me a message in secret - Hopefully it's not too much lol
           </p>
         </header>
 
@@ -189,13 +202,15 @@ export function VictoriaExperience({
                       {memoryMedia.map((item) => (
                         <figure key={item.id} className="overflow-hidden rounded-3xl bg-stone-100">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={item.url} alt={item.caption ?? memory.title} className="aspect-[4/3] w-full object-cover" loading="lazy" />
+                          <img src={item.url} alt={item.caption ?? memory.title} className="block w-full h-auto" loading="lazy" />
                           {item.caption ? <figcaption className="px-3 py-2 text-xs text-stone-600">{item.caption}</figcaption> : null}
                         </figure>
                       ))}
                     </div>
                   ) : null}
-                  {uploadOpen ? <VictoriaUploadForm memoryId={memory.id} /> : null}
+                  {uploadOpen ? (
+                    <VictoriaUploadForm memoryId={memory.id} onUploaded={() => closeUploadFor(memory.id)} />
+                  ) : null}
                 </article>
               );
             })}
