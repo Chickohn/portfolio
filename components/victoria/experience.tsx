@@ -5,6 +5,7 @@ import { CalendarHeart, Check, Clock, ImagePlus, Plus } from "lucide-react";
 
 import { VictoriaCountdown } from "./countdown";
 import { VictoriaEasterEggs } from "./easter-eggs";
+import { VictoriaEggCounter, VictoriaEggTrackerProvider } from "./egg-tracker";
 import { VictoriaMessageWall } from "./message-wall";
 import { VictoriaNewFuturePlanForm } from "./new-future-plan-form";
 import { VictoriaNewMemoryForm } from "./new-memory-form";
@@ -34,6 +35,7 @@ type Props = {
   userMemories: VictoriaUserMemory[];
   userMilestones: VictoriaMilestone[];
   userFuturePlans: VictoriaFuturePlan[];
+  foundEggIds: readonly string[];
   realtimeEnabled: boolean;
 };
 
@@ -46,6 +48,7 @@ export function VictoriaExperience({
   userMemories,
   userMilestones,
   userFuturePlans,
+  foundEggIds,
   realtimeEnabled,
 }: Props) {
   const greeting = session.user.username === "victoria" ? "Countdown to your arrival" : "Countdown to your arrival";
@@ -131,15 +134,17 @@ export function VictoriaExperience({
   const sortedPlans = [...futurePlans.slice().sort((left, right) => left.displayOrder - right.displayOrder), ...userFuturePlans];
 
   return (
-    <div className="min-h-screen overflow-hidden bg-[#f7efe7] text-stone-950">
-      <VictoriaWelcome
-        username={session.user.username}
-        lines={victoriaWelcome[session.user.username]}
-        shouldShow={!session.user.welcomeCompletedAt}
-      />
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(252,165,165,0.32),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(45,212,191,0.18),transparent_32%)]" />
-      <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-7 px-4 py-6 sm:px-6 lg:px-8">
-        <header className="pt-7">
+    <VictoriaEggTrackerProvider initialFoundIds={foundEggIds}>
+      <div className="min-h-screen overflow-hidden bg-[#f7efe7] text-stone-950">
+        <VictoriaEggCounter />
+        <VictoriaWelcome
+          username={session.user.username}
+          lines={victoriaWelcome[session.user.username]}
+          shouldShow={!session.user.welcomeCompletedAt}
+        />
+        <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(252,165,165,0.32),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(45,212,191,0.18),transparent_32%)]" />
+        <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-7 px-4 py-6 sm:px-6 lg:px-8">
+          <header className="pt-7 pr-24">
           <div>
             <h1 className="max-w-2xl text-balance text-4xl font-semibold leading-tight text-stone-950 sm:text-6xl">
               {greeting}
@@ -305,6 +310,7 @@ export function VictoriaExperience({
         </footer>
       </div>
       <VictoriaEasterEggs />
-    </div>
+      </div>
+    </VictoriaEggTrackerProvider>
   );
 }

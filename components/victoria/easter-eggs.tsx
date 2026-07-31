@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Star } from "lucide-react";
 
 import { easterEggs } from "@/lib/victoria/content";
+import { useVictoriaEggTracker } from "./egg-tracker";
 
 /** Each tap adds this much charge; nothing pins it to round stages. */
 const PROGRESS_PER_TAP = 0.2;
@@ -21,6 +22,7 @@ function clamp01(value: number) {
 }
 
 export function VictoriaEasterEggs() {
+  const { markFound } = useVictoriaEggTracker();
   const [progress, setProgress] = useState(0);
   const [found, setFound] = useState<string | null>(null);
   // Same stroke-dashoffset transition covers both directions; only its
@@ -66,6 +68,7 @@ export function VictoriaEasterEggs() {
 
   async function reveal(id: string) {
     setFound(id);
+    markFound(id);
     await fetch("/api/victoria/activity", {
       method: "POST",
       headers: { "content-type": "application/json" },

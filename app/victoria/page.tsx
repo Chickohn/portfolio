@@ -15,7 +15,7 @@ export default async function VictoriaPage() {
   // Two round trips total: the session (which also refreshes it and records the
   // device as seen), then everything the page renders plus the page_view event.
   const session = await requireVictoriaSession();
-  const { countdown, messages, media, userMemories, userMilestones, userFuturePlans } = await getVictoriaPageData(session, memoryIds);
+  const { countdown, messages, media, userMemories, userMilestones, userFuturePlans, foundEggIds } = await getVictoriaPageData(session, memoryIds);
 
   // One batched signing request for every image, rather than one per image.
   // storageKey stays on the server; the client only needs the signed URL.
@@ -35,6 +35,7 @@ export default async function VictoriaPage() {
       userMemories={userMemories}
       userMilestones={userMilestones}
       userFuturePlans={userFuturePlans}
+      foundEggIds={foundEggIds}
       realtimeEnabled={Boolean(process.env.VICTORIA_ABLY_API_KEY)}
     />
   );

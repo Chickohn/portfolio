@@ -230,7 +230,17 @@ export async function getVictoriaPageData(session: VictoriaSession, memoryIds: r
                 OR memory_id IN (SELECT id::text FROM victoria_user_memories WHERE hidden_at IS NULL)
               )
           ) AS items
-        ) AS media
+        ) AS media,
+        (
+          SELECT coalesce(jsonb_agg(egg_id), '[]'::jsonb)
+          FROM (
+            SELECT DISTINCT event_metadata->>'eggId' AS egg_id
+            FROM victoria_activity_events
+            WHERE user_id = $1::uuid
+              AND event_type = 'easter_egg_found'
+              AND coalesce(event_metadata->>'eggId', '') <> ''
+          ) AS found_eggs
+        ) AS found_egg_ids
     `,
     [
       session.user.id,
@@ -248,6 +258,9 @@ export async function getVictoriaPageData(session: VictoriaSession, memoryIds: r
   const userMemoryRows = (row.user_memories ?? []) as DbRow[];
   const userMilestoneRows = (row.user_milestones ?? []) as DbRow[];
   const userFuturePlanRows = (row.user_future_plans ?? []) as DbRow[];
+  const foundEggIds = ((row.found_egg_ids ?? []) as unknown[])
+    .map((id) => String(id))
+    .filter((id) => id.length > 0);
 
   return {
     countdown: mapCountdown(row.countdown as DbRow | null),
@@ -258,6 +271,7 @@ export async function getVictoriaPageData(session: VictoriaSession, memoryIds: r
     userMemories: userMemoryRows.map(mapUserMemory),
     userMilestones: userMilestoneRows.map(mapUserMilestone),
     userFuturePlans: userFuturePlanRows.map(mapUserFuturePlan),
+    foundEggIds,
   };
 }
 
