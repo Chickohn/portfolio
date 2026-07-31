@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { ImagePlus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ export function VictoriaUploadForm({ memoryId }: { memoryId?: string }) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   function upload(formData: FormData) {
     setError(null);
@@ -29,7 +31,9 @@ export function VictoriaUploadForm({ memoryId }: { memoryId?: string }) {
         return;
       }
 
-      setSuccess("Saved privately. Refresh to see the new photo.");
+      setSuccess("Saved privately.");
+      // Re-render the server component instead of asking for a full reload.
+      router.refresh();
     });
   }
 

@@ -4,35 +4,18 @@ import { z } from "zod";
 
 import { VICTORIA_COOKIE_NAME, VICTORIA_COOKIE_PATH, VICTORIA_LEGACY_COOKIE_NAMES } from "./constants";
 import { createRawToken, hashVictoriaToken } from "./crypto";
-import { getSql } from "./db";
-import { getSessionLifetimeDays, isVictoriaFeatureEnabled } from "./env";
+import { dbQuery, dbTransaction, toIsoString, toIsoStringOrNull, type DbRow } from "./db";
+import { getSessionLifetimeDays, isVictoriaDevBypassEnabled, isVictoriaFeatureEnabled } from "./env";
 import { getCurrentHost } from "./headers";
 import type { VictoriaSession, VictoriaUser } from "./types";
 import { browserFamily, osFamily } from "./user-agent";
 import { mapUser } from "./queries";
 
 export const claimTokenSchema = z.string().min(32).max(256).regex(/^[A-Za-z0-9_-]+$/);
+export const devBypassUsernameSchema = z.enum(["freddie", "victoria"]);
 
-type SessionRows = {
-  session_id: string;
-  expires_at: string;
-  user_id: string;
-  username: string;
-  display_name: string;
-  role: string;
-  welcome_completed_at: string | null;
-  user_created_at: string;
-  user_updated_at: string;
-  device_id: string;
-  label: string;
-  browser_family: string;
-  os_family: string;
-  claimed_at: string;
-  last_seen_at: string;
-  revoked_at: string | null;
-};
-
-function sessionFromRow(row: SessionRows): VictoriaSession {
+/** Timestamp columns arrive as JS Dates from `pg`; see toIsoString in ./db. */
+function sessionFromRow(row: DbRow): VictoriaSession {
   const user = mapUser({
     id: row.user_id,
     username: row.username,
@@ -46,17 +29,17 @@ function sessionFromRow(row: SessionRows): VictoriaSession {
   return {
     user,
     device: {
-      id: row.device_id,
-      userId: row.user_id,
-      label: row.label,
-      browserFamily: row.browser_family,
-      osFamily: row.os_family,
-      claimedAt: new Date(row.claimed_at).toISOString(),
-      lastSeenAt: new Date(row.last_seen_at).toISOString(),
-      revokedAt: row.revoked_at ? new Date(row.revoked_at).toISOString() : null,
+      id: String(row.device_id),
+      userId: String(row.user_id),
+      label: String(row.label),
+      browserFamily: String(row.browser_family),
+      osFamily: String(row.os_family),
+      claimedAt: toIsoString(row.claimed_at),
+      lastSeenAt: toIsoString(row.last_seen_at),
+      revokedAt: toIsoStringOrNull(row.revoked_at),
     },
-    sessionId: row.session_id,
-    expiresAt: new Date(row.expires_at).toISOString(),
+    sessionId: String(row.session_id),
+    expiresAt: toIsoString(row.expires_at),
   };
 }
 
@@ -89,52 +72,64 @@ export async function validateVictoriaSession(rawToken?: string | null): Promise
   }
 
   const tokenHash = hashVictoriaToken(token, "session");
-  const sql = getSql();
-  const rows = await sql`
-    SELECT
-      s.id AS session_id,
-      s.expires_at,
-      u.id AS user_id,
-      u.username,
-      u.display_name,
-      u.role,
-      u.welcome_completed_at,
-      u.created_at AS user_created_at,
-      u.updated_at AS user_updated_at,
-      d.id AS device_id,
-      d.label,
-      d.browser_family,
-      d.os_family,
-      d.claimed_at,
-      d.last_seen_at,
-      d.revoked_at
-    FROM victoria_sessions s
-    JOIN victoria_devices d ON d.id = s.device_id
-    JOIN victoria_users u ON u.id = d.user_id
-    WHERE s.token_hash = ${tokenHash}
-      AND s.revoked_at IS NULL
-      AND d.revoked_at IS NULL
-      AND s.expires_at > now()
-    LIMIT 1
-  `;
 
-  const row = rows[0] as SessionRows | undefined;
+  // One round trip: validate the token, refresh the session and device, and read
+  // back the joined session in the same statement. Every page render and every
+  // API route runs this, so it was the most-repeated pair of round trips in the
+  // app. The EXISTS guard keeps the original semantics — nothing is touched
+  // unless both the session and its device are live.
+  const rows = await dbQuery(
+    "validateVictoriaSession",
+    `
+      WITH touched_session AS (
+        UPDATE victoria_sessions s
+        SET last_used_at = now(),
+            expires_at = greatest(s.expires_at, now() + ($2::text || ' days')::interval)
+        WHERE s.token_hash = $1
+          AND s.revoked_at IS NULL
+          AND s.expires_at > now()
+          AND EXISTS (
+            SELECT 1 FROM victoria_devices d
+            WHERE d.id = s.device_id AND d.revoked_at IS NULL
+          )
+        RETURNING s.id, s.device_id, s.expires_at
+      ),
+      touched_device AS (
+        UPDATE victoria_devices d
+        SET last_seen_at = now(), updated_at = now()
+        WHERE d.id = (SELECT device_id FROM touched_session)
+        RETURNING d.id, d.user_id, d.label, d.browser_family, d.os_family,
+                  d.claimed_at, d.last_seen_at, d.revoked_at
+      )
+      SELECT
+        ts.id AS session_id,
+        ts.expires_at,
+        u.id AS user_id,
+        u.username,
+        u.display_name,
+        u.role,
+        u.welcome_completed_at,
+        u.created_at AS user_created_at,
+        u.updated_at AS user_updated_at,
+        td.id AS device_id,
+        td.label,
+        td.browser_family,
+        td.os_family,
+        td.claimed_at,
+        td.last_seen_at,
+        td.revoked_at
+      FROM touched_session ts
+      JOIN touched_device td ON td.id = ts.device_id
+      JOIN victoria_users u ON u.id = td.user_id
+      LIMIT 1
+    `,
+    [tokenHash, String(getSessionLifetimeDays())],
+  );
+
+  const row = rows[0];
   if (!row) {
     return null;
   }
-
-  await sql`
-    UPDATE victoria_sessions
-    SET last_used_at = now(),
-        expires_at = greatest(expires_at, now() + (${getSessionLifetimeDays()}::text || ' days')::interval)
-    WHERE id = ${row.session_id}::uuid
-  `;
-
-  await sql`
-    UPDATE victoria_devices
-    SET last_seen_at = now(), updated_at = now()
-    WHERE id = ${row.device_id}::uuid
-  `;
 
   return sessionFromRow(row);
 }
@@ -161,52 +156,42 @@ export async function requireVictoriaOwner(): Promise<VictoriaSession> {
   return session;
 }
 
-export async function createDeviceSessionForClaim(rawClaimToken: string) {
-  const parsedToken = claimTokenSchema.safeParse(rawClaimToken);
-  if (!parsedToken.success) {
-    return null;
-  }
-
-  const tokenHash = hashVictoriaToken(parsedToken.data, "claim");
-  const sql = getSql();
+async function createDeviceSessionForUserId(userId: string, deviceLabelPrefix = "") {
   const userAgent = headers().get("user-agent");
   const rawSessionToken = createRawToken();
   const sessionHash = hashVictoriaToken(rawSessionToken, "session");
   const expiresAt = new Date(Date.now() + getSessionLifetimeDays() * 86_400_000);
-  const label = `${browserFamily(userAgent)} on ${osFamily(userAgent)}`;
-  const user = await sql.begin(async (transaction) => {
-    const claimRows = await transaction`
-        UPDATE victoria_claim_tokens
-        SET used_at = now()
-        WHERE token_hash = ${tokenHash}
-          AND used_at IS NULL
-          AND revoked_at IS NULL
-          AND expires_at > now()
-        RETURNING user_id
-      `;
-    const claim = claimRows[0];
-    if (!claim) {
-      return null;
-    }
+  const baseLabel = `${browserFamily(userAgent)} on ${osFamily(userAgent)}`;
+  const label = deviceLabelPrefix ? `${deviceLabelPrefix}${baseLabel}` : baseLabel;
 
-    const deviceRows = await transaction`
-      INSERT INTO victoria_devices (user_id, label, browser_family, os_family)
-      VALUES (${claim.user_id}::uuid, ${label}, ${browserFamily(userAgent)}, ${osFamily(userAgent)})
-      RETURNING id
-    `;
-    const deviceId = String(deviceRows[0]?.id);
+  const user = await dbTransaction("createDeviceSessionForUserId", async (client) => {
+    const device = await client.query(
+      `
+        INSERT INTO victoria_devices (user_id, label, browser_family, os_family)
+        VALUES ($1::uuid, $2, $3, $4)
+        RETURNING id
+      `,
+      [userId, label, browserFamily(userAgent), osFamily(userAgent)],
+    );
+    const deviceId = String(device.rows[0]?.id);
 
-    await transaction`
-      INSERT INTO victoria_sessions (device_id, token_hash, expires_at)
-      VALUES (${deviceId}::uuid, ${sessionHash}, ${expiresAt.toISOString()}::timestamptz)
-    `;
+    await client.query(
+      `
+        INSERT INTO victoria_sessions (device_id, token_hash, expires_at)
+        VALUES ($1::uuid, $2, $3::timestamptz)
+      `,
+      [deviceId, sessionHash, expiresAt.toISOString()],
+    );
 
-    const userRows = await transaction`
-      SELECT id, username, display_name, role, welcome_completed_at, created_at, updated_at
-      FROM victoria_users
-      WHERE id = ${claim.user_id}::uuid
-    `;
-    return userRows[0] ? mapUser(userRows[0]) : null;
+    const users = await client.query(
+      `
+        SELECT id, username, display_name, role, welcome_completed_at, created_at, updated_at
+        FROM victoria_users
+        WHERE id = $1::uuid
+      `,
+      [userId],
+    );
+    return users.rows[0] ? mapUser(users.rows[0]) : null;
   });
 
   if (!user) {
@@ -217,11 +202,111 @@ export async function createDeviceSessionForClaim(rawClaimToken: string) {
   return { user, expiresAt };
 }
 
+export async function createDeviceSessionForClaim(rawClaimToken: string) {
+  const parsedToken = claimTokenSchema.safeParse(rawClaimToken);
+  if (!parsedToken.success) {
+    return null;
+  }
+
+  const tokenHash = hashVictoriaToken(parsedToken.data, "claim");
+  const userAgent = headers().get("user-agent");
+  const rawSessionToken = createRawToken();
+  const sessionHash = hashVictoriaToken(rawSessionToken, "session");
+  const expiresAt = new Date(Date.now() + getSessionLifetimeDays() * 86_400_000);
+  const label = `${browserFamily(userAgent)} on ${osFamily(userAgent)}`;
+
+  const user = await dbTransaction("createDeviceSessionForClaim", async (client) => {
+    // Claiming the token and creating the device must be atomic: a one-time link
+    // that is consumed without producing a session would lock the user out.
+    const claims = await client.query(
+      `
+        UPDATE victoria_claim_tokens
+        SET used_at = now()
+        WHERE token_hash = $1
+          AND used_at IS NULL
+          AND revoked_at IS NULL
+          AND expires_at > now()
+        RETURNING user_id
+      `,
+      [tokenHash],
+    );
+    const claim = claims.rows[0];
+    if (!claim) {
+      return null;
+    }
+
+    const device = await client.query(
+      `
+        INSERT INTO victoria_devices (user_id, label, browser_family, os_family)
+        VALUES ($1::uuid, $2, $3, $4)
+        RETURNING id
+      `,
+      [claim.user_id, label, browserFamily(userAgent), osFamily(userAgent)],
+    );
+    const deviceId = String(device.rows[0]?.id);
+
+    await client.query(
+      `
+        INSERT INTO victoria_sessions (device_id, token_hash, expires_at)
+        VALUES ($1::uuid, $2, $3::timestamptz)
+      `,
+      [deviceId, sessionHash, expiresAt.toISOString()],
+    );
+
+    const users = await client.query(
+      `
+        SELECT id, username, display_name, role, welcome_completed_at, created_at, updated_at
+        FROM victoria_users
+        WHERE id = $1::uuid
+      `,
+      [claim.user_id],
+    );
+    return users.rows[0] ? mapUser(users.rows[0]) : null;
+  });
+
+  if (!user) {
+    return null;
+  }
+
+  setVictoriaSessionCookie(rawSessionToken, expiresAt);
+  return { user, expiresAt };
+}
+
+/**
+ * Development-only session creation. Caller must gate with isVictoriaDevBypassEnabled().
+ */
+export async function createDevBypassSession(username: "freddie" | "victoria") {
+  const host = getCurrentHost();
+  if (!isVictoriaDevBypassEnabled(host)) {
+    return null;
+  }
+
+  const userRows = await dbQuery(
+    "createDevBypassSession",
+    `
+      SELECT id
+      FROM victoria_users
+      WHERE username = $1
+      LIMIT 1
+    `,
+    [username],
+  );
+  const userId = userRows[0]?.id;
+  if (!userId) {
+    return null;
+  }
+
+  return createDeviceSessionForUserId(String(userId), "[dev] ");
+}
+
 export async function completeWelcome(user: VictoriaUser) {
-  const sql = getSql();
-  await sql`
-    UPDATE victoria_users
-    SET welcome_completed_at = coalesce(welcome_completed_at, now()), updated_at = now()
-    WHERE id = ${user.id}::uuid
-  `;
+  await dbQuery(
+    "completeWelcome",
+    `
+      UPDATE victoria_users
+      SET welcome_completed_at = coalesce(welcome_completed_at, now()), updated_at = now()
+      WHERE id = $1::uuid
+    `,
+    [user.id],
+  );
 }

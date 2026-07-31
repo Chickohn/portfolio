@@ -24,6 +24,15 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * No nav, footer, analytics or structured data here by design — those live in
+ * app/(site)/layout.tsx, which this route deliberately sits outside of. The main
+ * landmark used to come from the shared shell, so it is provided here instead.
+ */
 export default function VictoriaLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <main id="main-content" role="main">
+      {children}
+    </main>
+  );
 }

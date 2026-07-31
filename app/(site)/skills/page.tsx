@@ -2,7 +2,7 @@
 import React from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { motion } from 'framer-motion';
-import { scrollAnimationVariants, staggerContainer } from '../../lib/utils';
+import { scrollAnimationVariants, staggerContainer } from '@/lib/utils';
 import { Skill, SkillCategory } from '@/types';
 
 interface SkillBarProps {

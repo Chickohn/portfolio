@@ -50,6 +50,32 @@ export function isVictoriaFeatureEnabled(host?: string | null) {
   return Boolean(hostWithoutPort && allowedHosts.includes(hostWithoutPort));
 }
 
+/**
+ * Local development helper: skip one-time claim links and sign in as Freddie/Victoria.
+ * Hard-blocked on production hosts and Vercel production/preview. Never enable via NEXT_PUBLIC_*.
+ */
+export function isVictoriaDevBypassEnabled(host?: string | null) {
+  if (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview") {
+    return false;
+  }
+
+  const hostWithoutPort = host?.split(":")[0]?.toLowerCase();
+  if (hostWithoutPort === "kohn.me.uk" || hostWithoutPort === "www.kohn.me.uk") {
+    return false;
+  }
+
+  if (process.env.VICTORIA_DEV_BYPASS === "false") {
+    return false;
+  }
+
+  if (process.env.NODE_ENV === "development") {
+    return true;
+  }
+
+  // Opt-in for local `next start` only.
+  return process.env.VICTORIA_DEV_BYPASS === "true";
+}
+
 export function getSessionLifetimeDays() {
   return Number(process.env.VICTORIA_SESSION_DAYS ?? 90);
 }

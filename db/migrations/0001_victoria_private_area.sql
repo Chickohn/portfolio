@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS victoria_countdown_settings (
 );
 
 INSERT INTO victoria_countdown_settings (id, label, target_at, timezone)
-VALUES ('return', 'Until Victoria is back', '2026-09-18T15:00:00Z', 'Europe/London')
+VALUES ('return', 'Until you get back <3', '2026-09-18T15:00:00Z', 'Europe/London')
 ON CONFLICT (id) DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS victoria_activity_events (

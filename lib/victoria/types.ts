@@ -44,6 +44,15 @@ export type VictoriaCountdownSettings = {
   timezone: string;
 };
 
+/** Shape-compatible with the static VictoriaMemory in lib/victoria/content.ts,
+ * so the client can merge hand-authored and user-created memories into one list. */
+export type VictoriaUserMemory = {
+  id: string;
+  title: string;
+  date: string;
+  body: string;
+};
+
 export const victoriaActivityEventTypes = [
   "page_view",
   "session_started",

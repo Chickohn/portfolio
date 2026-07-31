@@ -17,6 +17,9 @@ const nextConfig = {
   // Bundle optimization
   experimental: {
     scrollRestoration: true,
+    // Rewrites barrel imports to direct paths so a page only pulls in the icons
+    // and motion primitives it actually uses.
+    optimizePackageImports: ['lucide-react', 'framer-motion'],
   },
 
   // Enhanced security headers
@@ -162,7 +165,7 @@ const nextConfig = {
   },
 
   // Webpack optimization
-  webpack: (config, { isServer, dev }) => {
+  webpack: (config, { isServer }) => {
     // Bundle analysis in development
     if (process.env.ANALYZE === 'true') {
       const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -184,43 +187,16 @@ const nextConfig = {
       };
     }
 
-    // Production optimizations
-    if (!dev) {
-      config.optimization = {
-        ...config.optimization,
-        sideEffects: false,
-        usedExports: true,
-        splitChunks: {
-          chunks: 'all',
-          cacheGroups: {
-            default: false,
-            vendors: false,
-            // Vendor chunk for node_modules
-            vendor: {
-              name: 'vendor',
-              chunks: 'all',
-              test: /node_modules/,
-              priority: 20,
-            },
-            // Separate chunk for framer-motion
-            framerMotion: {
-              name: 'framer-motion',
-              test: /[\\/]node_modules[\\/](framer-motion)[\\/]/,
-              chunks: 'all',
-              priority: 30,
-            },
-            // Common chunk for shared code
-            common: {
-              name: 'common',
-              minChunks: 2,
-              chunks: 'all',
-              priority: 10,
-              reuseExistingChunk: true,
-            },
-          },
-        },
-      };
-    }
+    // Deliberately no `optimization.splitChunks` override here.
+    //
+    // A previous version set `default: false, vendors: false` and funnelled all
+    // of node_modules into a single `vendor` chunk, so every route downloaded
+    // every dependency. Next's own chunking is per-route and already tuned; use
+    // `experimental.optimizePackageImports` above to trim barrel imports instead.
+    //
+    // It also set `optimization.sideEffects = false`, which overrides each
+    // package's own `sideEffects` declaration and can silently drop CSS and
+    // polyfill imports that are side-effectful by design.
 
     return config;
   },

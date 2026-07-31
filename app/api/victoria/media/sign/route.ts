@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { requireVictoriaSession } from "@/lib/victoria/auth";
 import { assertSameOriginRequest } from "@/lib/victoria/csrf";
-import { getSql } from "@/lib/victoria/db";
+import { dbQuery } from "@/lib/victoria/db";
 import { privateNoStoreHeaders } from "@/lib/victoria/headers";
 import { createPrivateSignedUrl } from "@/lib/victoria/storage";
 import { checkVictoriaRateLimit } from "@/lib/victoria/rate-limit";
@@ -24,13 +24,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid media" }, { status: 400, headers: privateNoStoreHeaders() });
     }
 
-    const sql = getSql();
-    const rows = await sql`
-      SELECT storage_key
-      FROM victoria_media
-      WHERE id = ${parsed.data.id}::uuid AND hidden_at IS NULL
-      LIMIT 1
-    `;
+    const rows = await dbQuery(
+      "mediaSign",
+      `
+        SELECT storage_key
+        FROM victoria_media
+        WHERE id = $1::uuid AND hidden_at IS NULL
+        LIMIT 1
+      `,
+      [parsed.data.id],
+    );
     const row = rows[0];
     if (!row) {
       return NextResponse.json({ error: "Unavailable" }, { status: 404, headers: privateNoStoreHeaders() });

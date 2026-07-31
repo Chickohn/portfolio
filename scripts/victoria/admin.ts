@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
-import postgres from "postgres";
+import { Pool } from "pg";
 
 import { loadEnvForScripts } from "../load-env";
 import { createRawToken, hashVictoriaToken } from "../../lib/victoria/crypto";
@@ -13,12 +13,19 @@ import { getAnalyticsRetentionDays } from "../../lib/victoria/env";
 
 loadEnvForScripts();
 
-const sql = postgres(requiredEnv("DATABASE_URL"), {
+const pool = new Pool({
+  connectionString: requiredEnv("DATABASE_URL"),
   max: 3,
-  idle_timeout: 20,
-  connect_timeout: 10,
-  prepare: false,
+  idleTimeoutMillis: 20_000,
+  connectionTimeoutMillis: 10_000,
+  ssl: { rejectUnauthorized: false },
 });
+
+/** Returns rows. Params are optional so callers stay terse. */
+async function q(text: string, params: readonly unknown[] = []) {
+  const result = await pool.query(text, params as unknown[]);
+  return result.rows;
+}
 
 function requiredEnv(name: string) {
   const value = process.env[name];
@@ -48,13 +55,22 @@ async function confirm(prompt: string) {
 }
 
 async function migrate() {
-  const file = path.resolve(process.cwd(), "db/migrations/0001_victoria_private_area.sql");
-  await sql.unsafe(readFileSync(file, "utf8"));
+  const dir = path.resolve(process.cwd(), "db/migrations");
+  const files = readdirSync(dir)
+    .filter((name) => name.endsWith(".sql"))
+    .sort();
+
+  for (const file of files) {
+    // No parameters, so each file goes over the simple query protocol, which is
+    // what allows its multiple statements and DO $$ blocks in one round trip.
+    await pool.query(readFileSync(path.join(dir, file), "utf8"));
+    console.log(`Applied ${file}`);
+  }
   console.log("Victoria migration complete.");
 }
 
 async function seed() {
-  await sql`
+  await q(`
     INSERT INTO victoria_users (id, username, display_name, role)
     VALUES
       ('11111111-1111-4111-8111-111111111111', 'freddie', 'Freddie', 'owner'),
@@ -63,7 +79,7 @@ async function seed() {
       SET display_name = excluded.display_name,
           role = excluded.role,
           updated_at = now()
-  `;
+  `);
   console.log("Seeded Freddie and Victoria idempotently.");
 }
 
@@ -78,13 +94,16 @@ async function claim() {
   const rawToken = createRawToken();
   const tokenHash = hashVictoriaToken(rawToken, "claim");
   const days = Number(arg("days") ?? 14);
-  const rows = await sql`
-    INSERT INTO victoria_claim_tokens (user_id, token_hash, expires_at)
-    SELECT id, ${tokenHash}, now() + (${days}::text || ' days')::interval
-    FROM victoria_users
-    WHERE username = ${username}
-    RETURNING expires_at
-  `;
+  const rows = await q(
+    `
+      INSERT INTO victoria_claim_tokens (user_id, token_hash, expires_at)
+      SELECT id, $1, now() + ($2::text || ' days')::interval
+      FROM victoria_users
+      WHERE username = $3
+      RETURNING expires_at
+    `,
+    [tokenHash, String(days), username],
+  );
   if (!rows[0]) {
     console.error("User not found. Run victoria:seed first.");
     process.exit(1);
@@ -92,26 +111,28 @@ async function claim() {
 
   const origin = process.env.NEXT_PUBLIC_SITE_URL ?? "https://kohn.me.uk";
   console.log(`Claim URL for ${username}: ${origin}/victoria/claim/${rawToken}`);
-  console.log(`Expires: ${new Date(String(rows[0].expires_at)).toISOString()}`);
+  console.log(`Expires: ${new Date(rows[0].expires_at).toISOString()}`);
 }
 
 async function users() {
-  const rows = await sql`
-    SELECT username, display_name, role, welcome_completed_at, created_at
-    FROM victoria_users
-    ORDER BY username
-  `;
-  console.table(rows);
+  console.table(
+    await q(`
+      SELECT username, display_name, role, welcome_completed_at, created_at
+      FROM victoria_users
+      ORDER BY username
+    `),
+  );
 }
 
 async function devices() {
-  const rows = await sql`
-    SELECT d.id, u.username, d.label, d.browser_family, d.os_family, d.claimed_at, d.last_seen_at, d.revoked_at
-    FROM victoria_devices d
-    JOIN victoria_users u ON u.id = d.user_id
-    ORDER BY d.last_seen_at DESC
-  `;
-  console.table(rows);
+  console.table(
+    await q(`
+      SELECT d.id, u.username, d.label, d.browser_family, d.os_family, d.claimed_at, d.last_seen_at, d.revoked_at
+      FROM victoria_devices d
+      JOIN victoria_users u ON u.id = d.user_id
+      ORDER BY d.last_seen_at DESC
+    `),
+  );
 }
 
 async function revoke() {
@@ -120,13 +141,16 @@ async function revoke() {
   await confirm("This revokes active Victoria access. ");
 
   if (device) {
-    await sql`UPDATE victoria_devices SET revoked_at = now(), updated_at = now() WHERE id = ${device}::uuid`;
-    await sql`
-      UPDATE victoria_sessions s
-      SET revoked_at = now()
-      FROM victoria_devices d
-      WHERE s.device_id = d.id AND d.id = ${device}::uuid
-    `;
+    await q(`UPDATE victoria_devices SET revoked_at = now(), updated_at = now() WHERE id = $1::uuid`, [device]);
+    await q(
+      `
+        UPDATE victoria_sessions s
+        SET revoked_at = now()
+        FROM victoria_devices d
+        WHERE s.device_id = d.id AND d.id = $1::uuid
+      `,
+      [device],
+    );
     console.log("Device revoked.");
     return;
   }
@@ -136,13 +160,16 @@ async function revoke() {
     process.exit(2);
   }
 
-  await sql`
-    UPDATE victoria_sessions s
-    SET revoked_at = now()
-    FROM victoria_devices d
-    JOIN victoria_users u ON u.id = d.user_id
-    WHERE s.device_id = d.id AND u.username = ${username}
-  `;
+  await q(
+    `
+      UPDATE victoria_sessions s
+      SET revoked_at = now()
+      FROM victoria_devices d
+      JOIN victoria_users u ON u.id = d.user_id
+      WHERE s.device_id = d.id AND u.username = $1
+    `,
+    [username],
+  );
   console.log(`Sessions revoked for ${username}.`);
 }
 
@@ -152,7 +179,7 @@ async function resetWelcome() {
     console.error("--user must be freddie or victoria");
     process.exit(2);
   }
-  await sql`UPDATE victoria_users SET welcome_completed_at = null, updated_at = now() WHERE username = ${username}`;
+  await q(`UPDATE victoria_users SET welcome_completed_at = null, updated_at = now() WHERE username = $1`, [username]);
   console.log(`Welcome reset for ${username}.`);
 }
 
@@ -177,14 +204,17 @@ async function setCountdown() {
     process.exit(2);
   }
 
-  await sql`
-    INSERT INTO victoria_countdown_settings (id, label, target_at, timezone, updated_at)
-    VALUES ('return', 'Until Victoria is back', ${target.toISOString()}::timestamptz, ${timezone}, now())
-    ON CONFLICT (id) DO UPDATE
-      SET target_at = excluded.target_at,
-          timezone = excluded.timezone,
-          updated_at = now()
-  `;
+  await q(
+    `
+      INSERT INTO victoria_countdown_settings (id, label, target_at, timezone, updated_at)
+      VALUES ('return', 'Until you get back <3', $1::timestamptz, $2, now())
+      ON CONFLICT (id) DO UPDATE
+        SET target_at = excluded.target_at,
+            timezone = excluded.timezone,
+            updated_at = now()
+    `,
+    [target.toISOString(), timezone],
+  );
   console.log(`Countdown set to ${target.toISOString()} (${timezone}).`);
 }
 
@@ -195,7 +225,7 @@ async function hideMessage() {
     process.exit(2);
   }
   await confirm("This hides a message from the wall. ");
-  await sql`UPDATE victoria_messages SET hidden_at = now(), updated_at = now() WHERE id = ${id}::uuid`;
+  await q(`UPDATE victoria_messages SET hidden_at = now(), updated_at = now() WHERE id = $1::uuid`, [id]);
   console.log("Message hidden.");
 }
 
@@ -206,26 +236,31 @@ async function hideMedia() {
     process.exit(2);
   }
   await confirm("This hides media metadata from the gallery. ");
-  await sql`UPDATE victoria_media SET hidden_at = now() WHERE id = ${id}::uuid`;
+  await q(`UPDATE victoria_media SET hidden_at = now() WHERE id = $1::uuid`, [id]);
   console.log("Media hidden.");
 }
 
 async function clearAnalytics() {
   const days = Number(arg("days") ?? getAnalyticsRetentionDays());
   await confirm(`This deletes Victoria analytics older than ${days} days. `);
-  const rows = await sql`
-    DELETE FROM victoria_activity_events
-    WHERE created_at < now() - (${days}::text || ' days')::interval
-    RETURNING id
-  `;
+  const rows = await q(
+    `
+      DELETE FROM victoria_activity_events
+      WHERE created_at < now() - ($1::text || ' days')::interval
+      RETURNING id
+    `,
+    [String(days)],
+  );
   console.log(`Deleted ${rows.length} old activity events.`);
 }
 
 async function exportMetadata() {
   const id = randomUUID();
   const [messages, media] = await Promise.all([
-    sql`SELECT id, author_user_id, created_at, hidden_at FROM victoria_messages ORDER BY created_at ASC`,
-    sql`SELECT id, memory_id, original_filename, mime_type, size_bytes, width, height, caption, created_at, hidden_at FROM victoria_media ORDER BY created_at ASC`,
+    q(`SELECT id, author_user_id, created_at, hidden_at FROM victoria_messages ORDER BY created_at ASC`),
+    q(
+      `SELECT id, memory_id, original_filename, mime_type, size_bytes, width, height, caption, created_at, hidden_at FROM victoria_media ORDER BY created_at ASC`,
+    ),
   ]);
   console.log(JSON.stringify({ exportId: id, exportedAt: new Date().toISOString(), messages, media }, null, 2));
 }
@@ -251,9 +286,19 @@ if (!command || !commands[command]) {
   process.exit(2);
 }
 
-commands[command]().catch((error: unknown) => {
-  console.error(error instanceof Error ? error.message : "Victoria admin command failed.");
-  process.exit(1);
-}).finally(async () => {
-  await sql.end({ timeout: 5 }).catch(() => undefined);
-});
+// Close the pool before exiting rather than in a .finally() after process.exit(),
+// which never runs. Upstream backends outlive the process that opened them, so a
+// leaked pool here shows up later as connection pressure against the database —
+// see lib/victoria/db.ts and `npm run victoria:pool-probe`.
+async function run() {
+  try {
+    await commands[command]();
+  } catch (error: unknown) {
+    console.error(error instanceof Error ? error.message : "Victoria admin command failed.");
+    await pool.end().catch(() => undefined);
+    process.exit(1);
+  }
+  await pool.end().catch(() => undefined);
+}
+
+void run();

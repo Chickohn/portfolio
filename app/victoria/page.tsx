@@ -1,45 +1,40 @@
 import { unstable_noStore as noStore } from "next/cache";
 
 import { VictoriaExperience } from "@/components/victoria/experience";
-import { recordVictoriaActivity } from "@/lib/victoria/activity";
 import { memories } from "@/lib/victoria/content";
 import { requireVictoriaSession } from "@/lib/victoria/auth";
-import { getCountdownSettings, getMediaForMemories, getMessages } from "@/lib/victoria/queries";
-import { createPrivateSignedUrl } from "@/lib/victoria/storage";
+import { getVictoriaPageData } from "@/lib/victoria/queries";
+import { createPrivateSignedUrls } from "@/lib/victoria/storage";
+
+const memoryIds = memories.map((memory) => memory.id);
 
 export default async function VictoriaPage() {
   noStore();
   const initialNow = new Date();
-  const session = await requireVictoriaSession();
-  const countdown = await getCountdownSettings();
-  const messagesResult = await getMessages();
-  const mediaRows = await getMediaForMemories(memories.map((memory) => memory.id));
-  await recordVictoriaActivity(session, "page_view", { route: "/victoria" }).catch(() => undefined);
 
-  const media = await Promise.all(
-    mediaRows.map(async (row) => {
-      try {
-        return {
-          id: String(row.id),
-          memoryId: row.memory_id ? String(row.memory_id) : null,
-          url: await createPrivateSignedUrl(String(row.storage_key)),
-          caption: row.caption ? String(row.caption) : null,
-          width: row.width ? Number(row.width) : null,
-          height: row.height ? Number(row.height) : null,
-        };
-      } catch {
-        return null;
-      }
-    }),
-  );
+  // Two round trips total: the session (which also refreshes it and records the
+  // device as seen), then everything the page renders plus the page_view event.
+  const session = await requireVictoriaSession();
+  const { countdown, messages, media, userMemories, userMilestones, userFuturePlans } = await getVictoriaPageData(session, memoryIds);
+
+  // One batched signing request for every image, rather than one per image.
+  // storageKey stays on the server; the client only needs the signed URL.
+  const signedUrls = await createPrivateSignedUrls(media.map((item) => item.storageKey));
+  const mediaWithUrls = media.flatMap(({ storageKey, ...item }) => {
+    const url = signedUrls.get(storageKey);
+    return url ? [{ ...item, url }] : [];
+  });
 
   return (
     <VictoriaExperience
       session={session}
       countdown={countdown}
       initialNow={initialNow.toISOString()}
-      messages={messagesResult.messages}
-      media={media.filter((item): item is NonNullable<typeof item> => item !== null)}
+      messages={messages}
+      media={mediaWithUrls}
+      userMemories={userMemories}
+      userMilestones={userMilestones}
+      userFuturePlans={userFuturePlans}
       realtimeEnabled={Boolean(process.env.VICTORIA_ABLY_API_KEY)}
     />
   );

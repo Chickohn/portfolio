@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { Send } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { VICTORIA_MESSAGE_LIMIT } from "@/lib/victoria/constants";
 import type { VictoriaMessage, VictoriaUsername } from "@/lib/victoria/types";
 
 type Props = {
@@ -32,19 +33,136 @@ declare global {
   }
 }
 
+/** Built once, not per message per render. See lib/victoria/dates.ts. */
+const timestampFormatter = new Intl.DateTimeFormat("en-GB", {
+  dateStyle: "medium",
+  timeStyle: "short",
+  timeZone: "Europe/London",
+});
+
 function makeNonce() {
   return crypto.randomUUID();
 }
 
+const MessageBubble = memo(function MessageBubble({ message, mine }: { message: VictoriaMessage; mine: boolean }) {
+  return (
+    <article className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+      <div className={`max-w-[86%] rounded-3xl px-4 py-3 ${mine ? "bg-stone-950 text-white" : "bg-rose-100 text-stone-900"}`}>
+        <p className="whitespace-pre-wrap break-words text-sm leading-6">{message.body}</p>
+        <p className={`mt-2 text-[0.7rem] ${mine ? "text-white/65" : "text-stone-500"}`}>
+          {message.authorDisplayName} · {timestampFormatter.format(new Date(message.createdAt))}
+        </p>
+      </div>
+    </article>
+  );
+});
+
+/**
+ * The composer owns its own draft state.
+ *
+ * When `body` lived in VictoriaMessageWall, every keystroke re-rendered all 30
+ * message bubbles and re-formatted all 30 timestamps. Keeping the draft here means
+ * typing only re-renders this subtree.
+ */
+const MessageComposer = memo(function MessageComposer({
+  onSend,
+  error,
+}: {
+  onSend: (body: string) => Promise<boolean>;
+  error: string | null;
+}) {
+  const [body, setBody] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const trimmed = body.trim();
+  const canSend = trimmed.length > 0 && trimmed.length <= VICTORIA_MESSAGE_LIMIT;
+
+  function submit() {
+    if (!canSend || isSending) {
+      return;
+    }
+    setBody("");
+    setIsSending(true);
+    onSend(trimmed)
+      // Put the draft back rather than losing what they typed.
+      .then((sent) => {
+        if (!sent) setBody(trimmed);
+      })
+      .finally(() => setIsSending(false));
+  }
+
+  return (
+    <div className="mt-4 space-y-2">
+      <label htmlFor="victoria-note" className="sr-only">
+        Leave a note
+      </label>
+      <textarea
+        id="victoria-note"
+        value={body}
+        onChange={(event) => setBody(event.target.value)}
+        onKeyDown={(event) => {
+          if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+            submit();
+          }
+        }}
+        maxLength={VICTORIA_MESSAGE_LIMIT}
+        rows={3}
+        className="w-full resize-none rounded-3xl border border-stone-200 bg-white/80 px-4 py-3 text-sm text-stone-950 shadow-inner outline-none transition focus:border-rose-300 focus:ring-2 focus:ring-rose-200"
+        placeholder="Leave a message..."
+      />
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs text-stone-500">
+          {body.length}/{VICTORIA_MESSAGE_LIMIT}
+        </p>
+        <Button
+          type="button"
+          onClick={submit}
+          disabled={!canSend || isSending}
+          className="rounded-full bg-rose-700 text-white hover:bg-rose-800"
+        >
+          <Send aria-hidden className="h-4 w-4" />
+          Send
+        </Button>
+      </div>
+      {error ? <p className="text-sm text-red-700">{error}</p> : null}
+    </div>
+  );
+});
+
 export function VictoriaMessageWall({ initialMessages, currentUsername, realtimeEnabled }: Props) {
   const [messages, setMessages] = useState(initialMessages);
-  const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
   const liveRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  // Only connect once the wall is actually on screen — the Ably bundle is ~85KB
+  // gzipped from a third-party CDN and opens a WebSocket as soon as it loads.
+  const [shouldConnect, setShouldConnect] = useState(false);
 
   useEffect(() => {
-    if (!realtimeEnabled) {
+    if (!realtimeEnabled || shouldConnect) {
+      return undefined;
+    }
+
+    const section = sectionRef.current;
+    if (!section || typeof IntersectionObserver === "undefined") {
+      setShouldConnect(true);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setShouldConnect(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, [realtimeEnabled, shouldConnect]);
+
+  useEffect(() => {
+    if (!realtimeEnabled || !shouldConnect) {
       return undefined;
     }
 
@@ -58,8 +176,19 @@ export function VictoriaMessageWall({ initialMessages, currentUsername, realtime
       channel = client.channels.get("private:two-notes");
       channel.subscribe("message.created", (event: { data: VictoriaMessage }) => {
         const message = event.data;
+
+        // The sender already has their own message via the optimistic update and
+        // the POST response (see sendMessage below), which is why this handler
+        // used to duplicate it: the realtime echo carries the real server id,
+        // which never matches the client's `optimistic-...` placeholder, so the
+        // id-based dedupe below let it through as a second, separate bubble.
+        // Only the *other* participant's tabs need this event.
+        if (message.authorUsername === currentUsername) {
+          return;
+        }
+
         setMessages((current) => (current.some((item) => item.id === message.id) ? current : [...current, message]));
-        if (message.authorUsername !== currentUsername && liveRef.current) {
+        if (liveRef.current) {
           liveRef.current.textContent = `New note from ${message.authorDisplayName}`;
         }
       });
@@ -80,113 +209,76 @@ export function VictoriaMessageWall({ initialMessages, currentUsername, realtime
       channel?.unsubscribe();
       client?.close();
     };
-  }, [currentUsername, realtimeEnabled]);
+  }, [currentUsername, realtimeEnabled, shouldConnect]);
 
-  const canSend = useMemo(() => body.trim().length > 0 && body.trim().length <= 2000, [body]);
+  const sendMessage = useCallback(
+    async (trimmed: string) => {
+      setError(null);
+      const optimisticId = `optimistic-${makeNonce()}`;
+      setMessages((current) => [
+        ...current,
+        {
+          id: optimisticId,
+          authorUserId: "current",
+          authorUsername: currentUsername,
+          authorDisplayName: currentUsername === "freddie" ? "Freddie" : "Victoria",
+          body: trimmed,
+          createdAt: new Date().toISOString(),
+        },
+      ]);
 
-  function sendMessage() {
-    const trimmed = body.trim();
-    if (!trimmed) {
-      return;
-    }
-
-    setError(null);
-    const optimisticId = `optimistic-${makeNonce()}`;
-    const createdAt = new Date().toISOString();
-    setBody("");
-    setMessages((current) => [
-      ...current,
-      {
-        id: optimisticId,
-        authorUserId: "current",
-        authorUsername: currentUsername,
-        authorDisplayName: currentUsername === "freddie" ? "Freddie" : "Victoria",
-        body: trimmed,
-        createdAt,
-      },
-    ]);
-
-    startTransition(async () => {
-      const response = await fetch("/api/victoria/messages", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ body: trimmed, clientNonce: makeNonce() }),
-      });
-
-      if (!response.ok) {
+      const rollback = () => {
         setError("That note could not be saved. Try again in a moment.");
         setMessages((current) => current.filter((message) => message.id !== optimisticId));
-        setBody(trimmed);
-        return;
-      }
+        return false;
+      };
 
-      const data = (await response.json()) as { message: VictoriaMessage };
-      setMessages((current) => current.map((message) => (message.id === optimisticId ? data.message : message)));
-    });
-  }
+      try {
+        const response = await fetch("/api/victoria/messages", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ body: trimmed, clientNonce: makeNonce() }),
+        });
+
+        if (!response.ok) {
+          return rollback();
+        }
+
+        const data = (await response.json()) as { message: VictoriaMessage };
+        setMessages((current) => current.map((message) => (message.id === optimisticId ? data.message : message)));
+        return true;
+      } catch {
+        return rollback();
+      }
+    },
+    [currentUsername],
+  );
 
   return (
-    <section className="rounded-[2rem] border border-white/45 bg-white/70 p-5 shadow-xl backdrop-blur md:p-7" aria-labelledby="message-wall-heading">
+    <section
+      ref={sectionRef}
+      className="rounded-[2rem] border border-white/45 bg-white/70 p-5 shadow-xl md:p-7"
+      aria-labelledby="message-wall-heading"
+    >
       <div className="mb-4">
         <h2 id="message-wall-heading" className="text-xl font-semibold text-stone-950">
-          Notes for later
+          Messages
         </h2>
-        <p className="text-sm text-stone-600">A private wall for small messages. Nothing here is sent to public analytics.</p>
+        <p className="text-sm text-stone-600">In case you want to send me a message I can find later</p>
       </div>
       <div className="max-h-[28rem] space-y-3 overflow-y-auto pr-1">
         {messages.length === 0 ? (
           <p className="rounded-2xl border border-dashed border-stone-300 bg-white/60 p-4 text-sm text-stone-600">
-            No notes yet. Leave the first one whenever it feels right.
+            No notes yet.
           </p>
         ) : (
-          messages.map((message) => {
-            const mine = message.authorUsername === currentUsername;
-            return (
-              <article key={message.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[86%] rounded-3xl px-4 py-3 ${mine ? "bg-stone-950 text-white" : "bg-rose-100 text-stone-900"}`}>
-                  <p className="whitespace-pre-wrap break-words text-sm leading-6">{message.body}</p>
-                  <p className={`mt-2 text-[0.7rem] ${mine ? "text-white/65" : "text-stone-500"}`}>
-                    {message.authorDisplayName} ·{" "}
-                    {new Date(message.createdAt).toLocaleString("en-GB", {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                      timeZone: "Europe/London",
-                    })}
-                  </p>
-                </div>
-              </article>
-            );
-          })
+          messages.map((message) => (
+            <MessageBubble key={message.id} message={message} mine={message.authorUsername === currentUsername} />
+          ))
         )}
       </div>
       <div ref={liveRef} className="sr-only" aria-live="polite" />
-      <div className="mt-4 space-y-2">
-        <label htmlFor="victoria-note" className="sr-only">
-          Leave a note
-        </label>
-        <textarea
-          id="victoria-note"
-          value={body}
-          onChange={(event) => setBody(event.target.value)}
-          onKeyDown={(event) => {
-            if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
-              sendMessage();
-            }
-          }}
-          maxLength={2000}
-          rows={3}
-          className="w-full resize-none rounded-3xl border border-stone-200 bg-white/80 px-4 py-3 text-sm text-stone-950 shadow-inner outline-none transition focus:border-rose-300 focus:ring-2 focus:ring-rose-200"
-          placeholder="Leave a small note..."
-        />
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-xs text-stone-500">{body.length}/2000</p>
-          <Button type="button" onClick={sendMessage} disabled={!canSend || isPending} className="rounded-full bg-rose-700 text-white hover:bg-rose-800">
-            <Send aria-hidden className="h-4 w-4" />
-            Send
-          </Button>
-        </div>
-        {error ? <p className="text-sm text-red-700">{error}</p> : null}
-      </div>
+      <MessageComposer onSend={sendMessage} error={error} />
     </section>
   );
 }

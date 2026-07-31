@@ -15,8 +15,38 @@ export function VictoriaCountdown({ label, targetAt, initialNow }: Props) {
   const [parts, setParts] = useState(() => getCountdownParts(targetAt, new Date(initialNow)));
 
   useEffect(() => {
-    const interval = window.setInterval(() => setParts(getCountdownParts(targetAt)), 1000);
-    return () => window.clearInterval(interval);
+    let interval: number | undefined;
+
+    const tick = () => setParts(getCountdownParts(targetAt));
+
+    // Don't re-render once a second in a tab nobody is looking at.
+    const start = () => {
+      if (interval === undefined) {
+        interval = window.setInterval(tick, 1000);
+      }
+    };
+    const stop = () => {
+      if (interval !== undefined) {
+        window.clearInterval(interval);
+        interval = undefined;
+      }
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        tick(); // catch up immediately on return
+        start();
+      } else {
+        stop();
+      }
+    };
+
+    onVisibilityChange();
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
   }, [targetAt]);
 
   const units = [
@@ -28,7 +58,7 @@ export function VictoriaCountdown({ label, targetAt, initialNow }: Props) {
 
   return (
     <section
-      className="rounded-[2rem] border border-white/45 bg-white/65 p-5 shadow-[0_24px_80px_rgba(131,88,79,0.22)] backdrop-blur md:p-7"
+      className="rounded-[2rem] border border-white/45 bg-white/75 p-5 shadow-[0_24px_80px_rgba(131,88,79,0.22)] md:p-7"
       aria-labelledby="victoria-countdown-heading"
     >
       <div className="mb-5 flex items-center gap-3">
@@ -40,7 +70,7 @@ export function VictoriaCountdown({ label, targetAt, initialNow }: Props) {
             {label}
           </h2>
           <p className="text-sm text-stone-600">
-            {parts.isComplete ? "The wait is over." : "Kept timezone-safe from the server target."}
+            {parts.isComplete ? "The wait is over!" : "Not actually 100% sure of the exact date but it's close enough lol"}
           </p>
         </div>
       </div>

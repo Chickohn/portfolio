@@ -1,0 +1,403 @@
+{
+  "exportedAt": "2026-07-31T02:31:10.205Z",
+  "note": "timestamp below is real; the one above is a placeholder from a sandboxed clock",
+  "users": [
+    {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "username": "freddie",
+      "display_name": "Freddie",
+      "role": "owner",
+      "welcome_completed_at": "2026-07-29T16:37:19.936Z",
+      "created_at": "2026-07-29T15:55:47.506Z",
+      "updated_at": "2026-07-29T17:21:24.218Z"
+    },
+    {
+      "id": "22222222-2222-4222-8222-222222222222",
+      "username": "victoria",
+      "display_name": "Victoria",
+      "role": "member",
+      "welcome_completed_at": "2026-07-29T17:22:34.725Z",
+      "created_at": "2026-07-29T15:55:47.506Z",
+      "updated_at": "2026-07-29T17:22:34.725Z"
+    }
+  ],
+  "messages": [
+    {
+      "id": "2c4aec48-b7b8-4426-8e3a-9bf1fe8a2ec6",
+      "author_user_id": "11111111-1111-4111-8111-111111111111",
+      "body": "pg migration check",
+      "created_at": "2026-07-30T22:28:22.016Z",
+      "hidden_at": "2026-07-30T22:41:56.360Z"
+    },
+    {
+      "id": "40418c0a-1ffc-4c5e-ac39-45e416a080fb",
+      "author_user_id": "11111111-1111-4111-8111-111111111111",
+      "body": "Hey beautiful ;)",
+      "created_at": "2026-07-30T22:44:19.517Z",
+      "hidden_at": null
+    },
+    {
+      "id": "d38ed6e2-551f-45c0-a11b-ef5d13d1f3e3",
+      "author_user_id": "22222222-2222-4222-8222-222222222222",
+      "body": "hi sexy",
+      "created_at": "2026-07-30T22:44:36.488Z",
+      "hidden_at": null
+    },
+    {
+      "id": "93e37ca4-08f1-4118-b61b-eb589ca7566e",
+      "author_user_id": "11111111-1111-4111-8111-111111111111",
+      "body": "what are you doing tonight?",
+      "created_at": "2026-07-30T22:47:11.917Z",
+      "hidden_at": null
+    },
+    {
+      "id": "dbe54ece-b8f9-4dba-beb2-b754c4eb8f35",
+      "author_user_id": "22222222-2222-4222-8222-222222222222",
+      "body": "nothing much, you?",
+      "created_at": "2026-07-30T22:47:22.110Z",
+      "hidden_at": null
+    }
+  ],
+  "media": [
+    {
+      "id": "ee6585c5-dd3d-4079-9d54-03105e813505",
+      "memory_id": "first-memory",
+      "storage_key": "freddie/2026-07-30/ee6585c5-dd3d-4079-9d54-03105e813505.webp",
+      "original_filename": "WhatsApp Image 2026-07-30 at 23.22.27.jpeg",
+      "mime_type": "image/webp",
+      "size_bytes": 245076,
+      "width": 1536,
+      "height": 2048,
+      "caption": "Our first date <3",
+      "created_at": "2026-07-30T22:24:20.216Z",
+      "hidden_at": null
+    },
+    {
+      "id": "8426f3a7-746f-4f35-9307-25ed88ead59e",
+      "memory_id": "small-moment",
+      "storage_key": "freddie/2026-07-30/8426f3a7-746f-4f35-9307-25ed88ead59e.webp",
+      "original_filename": "WhatsApp Image 2026-07-30 at 23.22.27 (1).jpeg",
+      "mime_type": "image/webp",
+      "size_bytes": 53392,
+      "width": 1152,
+      "height": 2048,
+      "caption": "BBQ and an Uber ride back that was well worth missing the end of the football for ;)",
+      "created_at": "2026-07-30T22:39:07.626Z",
+      "hidden_at": null
+    }
+  ],
+  "userMemories": [],
+  "userMilestones": [],
+  "userFuturePlans": [],
+  "countdown": [
+    {
+      "id": "return",
+      "label": "Until You get back <3",
+      "target_at": "2026-09-18T15:00:00.000Z",
+      "timezone": "Europe/London",
+      "updated_at": "2026-07-30T23:03:54.422Z"
+    }
+  ],
+  "devices": [
+    {
+      "id": "b7a8ed92-f56e-441b-88eb-86dfa7319613",
+      "user_id": "11111111-1111-4111-8111-111111111111",
+      "label": "Chrome on Linux",
+      "browser_family": "Chrome",
+      "os_family": "Linux",
+      "claimed_at": "2026-07-29T15:59:33.063Z",
+      "last_seen_at": "2026-07-29T15:59:34.199Z",
+      "revoked_at": "2026-07-29T16:02:44.663Z"
+    },
+    {
+      "id": "87962869-cc09-4bc4-84e9-14a736a8787a",
+      "user_id": "11111111-1111-4111-8111-111111111111",
+      "label": "Edge on Linux",
+      "browser_family": "Edge",
+      "os_family": "Linux",
+      "claimed_at": "2026-07-29T16:04:15.643Z",
+      "last_seen_at": "2026-07-29T16:07:44.837Z",
+      "revoked_at": null
+    },
+    {
+      "id": "4bf5b0ec-e2da-4a01-8412-01672a7fe082",
+      "user_id": "22222222-2222-4222-8222-222222222222",
+      "label": "Firefox on Linux",
+      "browser_family": "Firefox",
+      "os_family": "Linux",
+      "claimed_at": "2026-07-29T16:07:39.415Z",
+      "last_seen_at": "2026-07-29T16:07:44.838Z",
+      "revoked_at": null
+    },
+    {
+      "id": "b7857781-a1b1-4d10-bbad-52472c7f1c80",
+      "user_id": "11111111-1111-4111-8111-111111111111",
+      "label": "Edge on Linux",
+      "browser_family": "Edge",
+      "os_family": "Linux",
+      "claimed_at": "2026-07-29T16:10:27.366Z",
+      "last_seen_at": "2026-07-29T16:10:28.426Z",
+      "revoked_at": null
+    },
+    {
+      "id": "cf12ea9d-8196-42ae-bb4e-ddc51429d96c",
+      "user_id": "11111111-1111-4111-8111-111111111111",
+      "label": "Edge on Linux",
+      "browser_family": "Edge",
+      "os_family": "Linux",
+      "claimed_at": "2026-07-29T16:16:37.959Z",
+      "last_seen_at": "2026-07-29T16:16:38.611Z",
+      "revoked_at": null
+    },
+    {
+      "id": "78a9e66a-5ecc-4524-b7d2-290b6405e7c8",
+      "user_id": "11111111-1111-4111-8111-111111111111",
+      "label": "Edge on Linux",
+      "browser_family": "Edge",
+      "os_family": "Linux",
+      "claimed_at": "2026-07-29T16:19:28.788Z",
+      "last_seen_at": "2026-07-29T16:19:29.767Z",
+      "revoked_at": null
+    },
+    {
+      "id": "85c6908c-9a1d-47be-99c2-a671c46ead3b",
+      "user_id": "11111111-1111-4111-8111-111111111111",
+      "label": "Unknown browser on Unknown OS",
+      "browser_family": "Unknown browser",
+      "os_family": "Unknown OS",
+      "claimed_at": "2026-07-29T16:22:50.852Z",
+      "last_seen_at": "2026-07-29T16:22:51.562Z",
+      "revoked_at": "2026-07-29T16:24:24.109Z"
+    },
+    {
+      "id": "235224e0-d748-4e4e-848b-b9624475f8ce",
+      "user_id": "11111111-1111-4111-8111-111111111111",
+      "label": "Firefox on Linux",
+      "browser_family": "Firefox",
+      "os_family": "Linux",
+      "claimed_at": "2026-07-29T16:27:17.276Z",
+      "last_seen_at": "2026-07-29T16:30:03.575Z",
+      "revoked_at": null
+    },
+    {
+      "id": "c55126c8-06dd-4c1f-8277-03d096f7ab7c",
+      "user_id": "11111111-1111-4111-8111-111111111111",
+      "label": "Unknown browser on Unknown OS",
+      "browser_family": "Unknown browser",
+      "os_family": "Unknown OS",
+      "claimed_at": "2026-07-29T16:32:13.217Z",
+      "last_seen_at": "2026-07-29T16:34:54.719Z",
+      "revoked_at": "2026-07-29T16:35:45.364Z"
+    },
+    {
+      "id": "bb2b6600-215f-4d96-91e1-0cbedf61c472",
+      "user_id": "11111111-1111-4111-8111-111111111111",
+      "label": "Firefox on Linux",
+      "browser_family": "Firefox",
+      "os_family": "Linux",
+      "claimed_at": "2026-07-29T16:37:16.187Z",
+      "last_seen_at": "2026-07-30T21:11:29.858Z",
+      "revoked_at": null
+    },
+    {
+      "id": "b10bce34-7199-459f-a6dc-c52d4103257c",
+      "user_id": "22222222-2222-4222-8222-222222222222",
+      "label": "Safari on macOS",
+      "browser_family": "Safari",
+      "os_family": "macOS",
+      "claimed_at": "2026-07-29T17:22:29.007Z",
+      "last_seen_at": "2026-07-29T20:29:29.571Z",
+      "revoked_at": null
+    },
+    {
+      "id": "505de4f0-84f7-47f9-99d9-d29d65fa65e2",
+      "user_id": "11111111-1111-4111-8111-111111111111",
+      "label": "[dev] Firefox on Linux",
+      "browser_family": "Firefox",
+      "os_family": "Linux",
+      "claimed_at": "2026-07-30T21:10:58.640Z",
+      "last_seen_at": "2026-07-30T21:10:58.640Z",
+      "revoked_at": null
+    },
+    {
+      "id": "13743ad1-542e-434f-81af-0c12d32f18e7",
+      "user_id": "11111111-1111-4111-8111-111111111111",
+      "label": "[dev] Edge on Linux",
+      "browser_family": "Edge",
+      "os_family": "Linux",
+      "claimed_at": "2026-07-30T21:14:19.981Z",
+      "last_seen_at": "2026-07-30T21:17:13.068Z",
+      "revoked_at": null
+    },
+    {
+      "id": "7b8d3708-b5de-450e-ae7e-5741bc63c682",
+      "user_id": "22222222-2222-4222-8222-222222222222",
+      "label": "[dev] Edge on Linux",
+      "browser_family": "Edge",
+      "os_family": "Linux",
+      "claimed_at": "2026-07-30T21:18:29.248Z",
+      "last_seen_at": "2026-07-30T22:22:37.210Z",
+      "revoked_at": null
+    },
+    {
+      "id": "05545d1a-7efa-4b87-bc59-8736811c8a09",
+      "user_id": "11111111-1111-4111-8111-111111111111",
+      "label": "[dev] Unknown browser on Unknown OS",
+      "browser_family": "Unknown browser",
+      "os_family": "Unknown OS",
+      "claimed_at": "2026-07-30T22:08:49.275Z",
+      "last_seen_at": "2026-07-30T22:09:30.377Z",
+      "revoked_at": null
+    },
+    {
+      "id": "8a54d238-f53e-4b6d-bb0d-8b57e02ce09c",
+      "user_id": "11111111-1111-4111-8111-111111111111",
+      "label": "[dev] Unknown browser on Unknown OS",
+      "browser_family": "Unknown browser",
+      "os_family": "Unknown OS",
+      "claimed_at": "2026-07-30T22:11:42.873Z",
+      "last_seen_at": "2026-07-30T22:12:00.409Z",
+      "revoked_at": null
+    },
+    {
+      "id": "c71c8482-514e-4d13-b646-ef3ad376f942",
+      "user_id": "11111111-1111-4111-8111-111111111111",
+      "label": "[dev] Edge on Linux",
+      "browser_family": "Edge",
+      "os_family": "Linux",
+      "claimed_at": "2026-07-30T22:22:52.565Z",
+      "last_seen_at": "2026-07-30T22:39:17.837Z",
+      "revoked_at": null
+    },
+    {
+      "id": "cb31f4f7-02c1-4cc0-9fcc-f02885277054",
+      "user_id": "22222222-2222-4222-8222-222222222222",
+      "label": "[dev] Unknown browser on Unknown OS",
+      "browser_family": "Unknown browser",
+      "os_family": "Unknown OS",
+      "claimed_at": "2026-07-30T22:25:37.071Z",
+      "last_seen_at": "2026-07-30T22:25:37.919Z",
+      "revoked_at": null
+    },
+    {
+      "id": "b0af072f-f63b-475d-9537-71d1f6df5ea4",
+      "user_id": "11111111-1111-4111-8111-111111111111",
+      "label": "[dev] Unknown browser on Unknown OS",
+      "browser_family": "Unknown browser",
+      "os_family": "Unknown OS",
+      "claimed_at": "2026-07-30T22:27:16.237Z",
+      "last_seen_at": "2026-07-30T22:27:16.950Z",
+      "revoked_at": null
+    },
+    {
+      "id": "344d4ffa-0b57-4700-b87d-706e1e6a95ce",
+      "user_id": "11111111-1111-4111-8111-111111111111",
+      "label": "[dev] Unknown browser on Unknown OS",
+      "browser_family": "Unknown browser",
+      "os_family": "Unknown OS",
+      "claimed_at": "2026-07-30T22:28:21.803Z",
+      "last_seen_at": "2026-07-30T22:28:22.357Z",
+      "revoked_at": null
+    },
+    {
+      "id": "2bc77313-add0-42cc-8172-cba29dc73efc",
+      "user_id": "11111111-1111-4111-8111-111111111111",
+      "label": "[dev] Unknown browser on Unknown OS",
+      "browser_family": "Unknown browser",
+      "os_family": "Unknown OS",
+      "claimed_at": "2026-07-30T22:29:39.327Z",
+      "last_seen_at": "2026-07-30T22:29:39.902Z",
+      "revoked_at": null
+    },
+    {
+      "id": "0cfcd681-2ebb-44c8-87df-a06a8bf0838c",
+      "user_id": "11111111-1111-4111-8111-111111111111",
+      "label": "[dev] Unknown browser on Unknown OS",
+      "browser_family": "Unknown browser",
+      "os_family": "Unknown OS",
+      "claimed_at": "2026-07-30T22:30:45.092Z",
+      "last_seen_at": "2026-07-30T22:30:57.542Z",
+      "revoked_at": null
+    },
+    {
+      "id": "995e8cf7-51ea-439d-b67c-c7f72177101e",
+      "user_id": "22222222-2222-4222-8222-222222222222",
+      "label": "[dev] Edge on Linux",
+      "browser_family": "Edge",
+      "os_family": "Linux",
+      "claimed_at": "2026-07-30T22:39:42.301Z",
+      "last_seen_at": "2026-07-30T22:41:45.640Z",
+      "revoked_at": null
+    },
+    {
+      "id": "abdb0a45-44af-4b4b-ba0c-6293f666d1a9",
+      "user_id": "11111111-1111-4111-8111-111111111111",
+      "label": "[dev] Edge on Linux",
+      "browser_family": "Edge",
+      "os_family": "Linux",
+      "claimed_at": "2026-07-30T22:41:53.203Z",
+      "last_seen_at": "2026-07-31T02:15:28.986Z",
+      "revoked_at": null
+    },
+    {
+      "id": "515bf70d-d7ee-4982-9388-ede985da513d",
+      "user_id": "22222222-2222-4222-8222-222222222222",
+      "label": "[dev] Firefox on Linux",
+      "browser_family": "Firefox",
+      "os_family": "Linux",
+      "claimed_at": "2026-07-30T22:42:33.152Z",
+      "last_seen_at": "2026-07-31T02:15:42.496Z",
+      "revoked_at": null
+    },
+    {
+      "id": "7e8750b6-fd4d-4be8-9adb-17c91f773c5f",
+      "user_id": "22222222-2222-4222-8222-222222222222",
+      "label": "[dev] Unknown browser on Unknown OS",
+      "browser_family": "Unknown browser",
+      "os_family": "Unknown OS",
+      "claimed_at": "2026-07-30T23:05:01.305Z",
+      "last_seen_at": "2026-07-30T23:05:01.475Z",
+      "revoked_at": null
+    },
+    {
+      "id": "0dfa4d26-c3cf-4a94-b495-db62e5713a1d",
+      "user_id": "11111111-1111-4111-8111-111111111111",
+      "label": "[dev] Unknown browser on Unknown OS",
+      "browser_family": "Unknown browser",
+      "os_family": "Unknown OS",
+      "claimed_at": "2026-07-31T02:10:52.062Z",
+      "last_seen_at": "2026-07-31T02:11:14.599Z",
+      "revoked_at": null
+    },
+    {
+      "id": "1ca37dfe-9e64-43a7-a271-b4dad6bba752",
+      "user_id": "11111111-1111-4111-8111-111111111111",
+      "label": "[dev] Unknown browser on Unknown OS",
+      "browser_family": "Unknown browser",
+      "os_family": "Unknown OS",
+      "claimed_at": "2026-07-31T02:13:34.803Z",
+      "last_seen_at": "2026-07-31T02:13:35.029Z",
+      "revoked_at": null
+    },
+    {
+      "id": "73a9afa6-8a7b-4a16-9d20-7c3499e7f488",
+      "user_id": "22222222-2222-4222-8222-222222222222",
+      "label": "[dev] Firefox on Linux",
+      "browser_family": "Firefox",
+      "os_family": "Linux",
+      "claimed_at": "2026-07-31T02:24:30.733Z",
+      "last_seen_at": "2026-07-31T02:30:00.266Z",
+      "revoked_at": null
+    },
+    {
+      "id": "a53b2e94-2750-4edc-a241-b98a6b49116f",
+      "user_id": "11111111-1111-4111-8111-111111111111",
+      "label": "[dev] Unknown browser on Unknown OS",
+      "browser_family": "Unknown browser",
+      "os_family": "Unknown OS",
+      "claimed_at": "2026-07-31T02:25:26.615Z",
+      "last_seen_at": "2026-07-31T02:25:48.736Z",
+      "revoked_at": null
+    }
+  ]
+}

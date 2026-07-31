@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { slugify } from "@/lib/slug";
 import type { ProjectSectionType } from "@/lib/project-model";
-import type { ProjectFormState } from "@/app/admin/(protected)/projects/actions";
+import type { ProjectFormState } from "@/app/(site)/admin/(protected)/projects/actions";
 
 type FormMode = "create" | "edit";
 

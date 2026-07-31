@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { getSql } from "./db";
+import { dbQuery } from "./db";
 import type { VictoriaActivityEventType, VictoriaSession } from "./types";
 import { victoriaActivityEventTypes } from "./types";
 
@@ -16,9 +16,12 @@ export async function recordVictoriaActivity(
   }
 
   const parsed = metadataSchema.parse(metadata);
-  const sql = getSql();
-  await sql`
-    INSERT INTO victoria_activity_events (user_id, device_id, event_type, event_metadata)
-    VALUES (${session.user.id}::uuid, ${session.device.id}::uuid, ${eventType}, ${JSON.stringify(parsed)}::jsonb)
-  `;
+  await dbQuery(
+    `recordVictoriaActivity:${eventType}`,
+    `
+      INSERT INTO victoria_activity_events (user_id, device_id, event_type, event_metadata)
+      VALUES ($1::uuid, $2::uuid, $3, $4::jsonb)
+    `,
+    [session.user.id, session.device.id, eventType, JSON.stringify(parsed)],
+  );
 }

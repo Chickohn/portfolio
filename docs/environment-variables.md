@@ -130,6 +130,7 @@ Optional:
 
 - `VICTORIA_FEATURE_ENABLED`
 - `VICTORIA_ALLOWED_HOSTS`
+- `VICTORIA_DEV_BYPASS` — local claim-link bypass (`true`/`false`). Default on in `next dev`; never works on `kohn.me.uk` or Vercel production.
 - `VICTORIA_SESSION_DAYS`
 - `VICTORIA_ANALYTICS_RETENTION_DAYS`
 - `VICTORIA_UPLOAD_MAX_BYTES`

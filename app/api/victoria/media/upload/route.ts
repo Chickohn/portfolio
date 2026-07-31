@@ -5,7 +5,7 @@ import { z } from "zod";
 import { recordVictoriaActivity } from "@/lib/victoria/activity";
 import { requireVictoriaSession } from "@/lib/victoria/auth";
 import { assertSameOriginRequest } from "@/lib/victoria/csrf";
-import { getSql } from "@/lib/victoria/db";
+import { dbQuery } from "@/lib/victoria/db";
 import { getUploadMaxBytes } from "@/lib/victoria/env";
 import { privateNoStoreHeaders } from "@/lib/victoria/headers";
 import { normaliseVictoriaImage } from "@/lib/victoria/media";
@@ -49,33 +49,36 @@ export async function POST(request: NextRequest) {
     const storageKey = `${session.user.username}/${new Date().toISOString().slice(0, 10)}/${id}.webp`;
     await uploadPrivateObject(storageKey, normalised.buffer, normalised.mimeType);
 
-    const sql = getSql();
-    await sql`
-      INSERT INTO victoria_media (
+    await dbQuery(
+      "insertMedia",
+      `
+        INSERT INTO victoria_media (
+          id,
+          memory_id,
+          uploaded_by_user_id,
+          storage_key,
+          original_filename,
+          mime_type,
+          size_bytes,
+          width,
+          height,
+          caption
+        )
+        VALUES ($1::uuid, $2, $3::uuid, $4, $5, $6, $7, $8, $9, $10)
+      `,
+      [
         id,
-        memory_id,
-        uploaded_by_user_id,
-        storage_key,
-        original_filename,
-        mime_type,
-        size_bytes,
-        width,
-        height,
-        caption
-      )
-      VALUES (
-        ${id}::uuid,
-        ${parsed.data.memoryId ?? null},
-        ${session.user.id}::uuid,
-        ${storageKey},
-        ${file.name},
-        ${normalised.mimeType},
-        ${normalised.sizeBytes},
-        ${normalised.width},
-        ${normalised.height},
-        ${parsed.data.caption || null}
-      )
-    `;
+        parsed.data.memoryId ?? null,
+        session.user.id,
+        storageKey,
+        file.name,
+        normalised.mimeType,
+        normalised.sizeBytes,
+        normalised.width,
+        normalised.height,
+        parsed.data.caption || null,
+      ],
+    );
 
     await recordVictoriaActivity(session, "gallery_opened", { upload: true }).catch(() => undefined);
     return NextResponse.json({ ok: true }, { headers: privateNoStoreHeaders() });

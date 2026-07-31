@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { getPublicInternalProjectBySlug } from '../../../lib/public-projects'
+import { getPublicInternalProjectBySlug } from '@/lib/public-projects'
 import ProjectDetailsCard from '@/components/project-details-card'
 import SectionRenderer from '@/components/section-renderer'
 import Script from 'next/script'

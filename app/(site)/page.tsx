@@ -1,12 +1,12 @@
 "use client";
 import { useState } from 'react';
-import { Button } from "../components/ui/button"
+import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { ArrowRight, Code2, Gamepad2, GraduationCap, Briefcase, Github, Linkedin } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { scrollAnimationVariants, slideInLeftVariants, slideInRightVariants, staggerContainer, hoverScaleVariants } from '../lib/utils'
+import { scrollAnimationVariants, slideInLeftVariants, slideInRightVariants, staggerContainer, hoverScaleVariants } from '@/lib/utils'
 import Image from 'next/image'
-import ImageLightbox from '../components/image-lightbox'
+import ImageLightbox from '@/components/image-lightbox'
 
 export default function Home() {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);

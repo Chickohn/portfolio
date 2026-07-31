@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import SiteShell from "../components/site-shell";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -53,6 +52,12 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * Document shell only — fonts, globals, and <body>.
+ *
+ * Public-site chrome (nav, footer, analytics, structured data) lives in
+ * app/(site)/layout.tsx so that /victoria does not render or download it.
+ */
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -60,9 +65,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black`}>
-        <SiteShell>{children}</SiteShell>
-      </body>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black`}>{children}</body>
     </html>
   );
 }

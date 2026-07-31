@@ -1,123 +1,199 @@
-import { z } from "zod";
+/**
+ * Hand-authored page copy. Everything here is a literal, so it is checked by
+ * TypeScript at build time and by __tests__/lib/victoria/content.test.ts.
+ *
+ * This file used to validate itself with zod at module scope. Because it is
+ * imported by components/victoria/experience.tsx — a client component — that
+ * shipped zod to the browser and re-validated constants on every page load.
+ * Keep this module dependency-free.
+ */
 import { OFFICIAL_RELATIONSHIP_DATE } from "./constants";
 
-const planSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  description: z.string().optional(),
-  targetDate: z.string().optional(),
-  category: z.string().optional(),
-  completed: z.boolean(),
-  displayOrder: z.number(),
-});
+export type VictoriaMemory = {
+  id: string;
+  title: string;
+  date: string;
+  body: string;
+  imageCaption?: string;
+};
 
-const memorySchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  date: z.string(),
-  body: z.string(),
-  imageCaption: z.string().optional(),
-});
+export type VictoriaFuturePlan = {
+  id: string;
+  title: string;
+  description?: string;
+  targetDate?: string;
+  category?: string;
+  completed: boolean;
+  displayOrder: number;
+};
 
-const milestoneSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  description: z.string().optional(),
-  occursAt: z.string(),
-  displayOrder: z.number(),
-});
+export type VictoriaMilestone = {
+  id: string;
+  title: string;
+  description?: string;
+  occursAt: string;
+  displayOrder: number;
+};
 
-const eggSchema = z.object({
-  id: z.string(),
-  triggerLabel: z.string(),
-  title: z.string(),
-  body: z.string(),
-});
+export type VictoriaEasterEgg = {
+  id: string;
+  triggerLabel: string;
+  title: string;
+  body: string;
+};
 
 export const victoriaWelcome = {
   victoria: [
-    "This little place is just for us.",
-    "A quiet pocket for notes, memories, countdowns, and all the small lovely things.",
-    "No pressure to do anything perfectly. Just arrive, smile if you want to, and make yourself at home.",
+    "I made this for us, I thought it could be cute.",
+    "We can keep track of things together if we remember lol",
+    "I've started us off with a few things, but hopefully there'll be plenty more to come :)"
   ],
   freddie: [
-    "Welcome home, Freddie.",
-    "Everything here is private, editable, and ready for the two of you to make it yours.",
+    "Welcome home, Freddie."
   ],
 } as const;
 
 export const dailyMessages = [
-  "One day closer.",
-  "A reason I appreciate you belongs here.",
-  "Today can hold something soft.",
-  "Save a tiny thought for later.",
-  "Distance gets a little less dramatic when there is somewhere warm to leave a note.",
-  "Add a message that feels like today.",
+  "One day closerr",
+  "Thinking about you today. And yesterday. Just thought you should know.",
+  "Can't waitt to see you again <333",
+  "t'es la numéro 1",
+  "Getting the train but it's not to the Victoria I'm hoping for is going to suck",
+  "You're beautiful, funny, and sexy as hell - Of course I'm going to make you mine",
+  "Send me a pic of your toes lol - hopefully this isn't the first one that comes up",
+  "Tu me rends plus heureux que tu ne le penses <3",
+  "I guess I would prioritise you over sam",
+  "I miss you </3",
+  "Hope you have a great day, I'm thinking about you <3",
+  "This countdown moves wayyy too slowly",
+  "What noww?"
 ] as const;
 
 export const memories = [
   {
-    id: "first-memory",
-    title: "Add your first memory here",
-    date: OFFICIAL_RELATIONSHIP_DATE,
-    body: "Write a small memory here. Keep the private details in this source-controlled file or attach private images through the upload flow.",
-    imageCaption: "Private photos linked to this memory will appear here.",
+    id: "sams-bday",
+    title: "Sam's birthday",
+    date: "2026-06-12",
+    body: "Fell into Sams floor and embarrassed myself but that didn't stop the plan I had in mind from before the day started",
   },
   {
-    id: "small-moment",
-    title: "A small moment worth keeping",
-    date: "2026-07-12",
-    body: "Use this as a gentle placeholder for something specific Freddie can add later.",
+    id: "first-date",
+    title: "The day I made you mine",
+    date: "2026-07-11",
+    body: "No amount of A5 wagyu was going to make me less nervous to ask you out 2 mins from Sam's house lol",
   },
-] as const;
+  {
+    id: "luca-bbq",
+    title: "BBQ, missed full-time, no regrets",
+    date: "2026-07-18",
+    body: "A wonderful wake up before a BBQ with people neither of us knew, there will never be a better idea than leaving before the end of the football to go home with you <3",
+  },
+  {
+    id: "furniture-day",
+    title: "The IKEA dream team",
+    date: "2026-06-22",
+    body: "Early wake up to some useless delivery people, tried to be manly and help build it but couldn't even build a damn chair properly.",
+  },
+  {
+    id: "birthday-garden",
+    title: "Your birthday in the garden",
+    date: "2026-07-01",
+    body: "Pizza and a garden full of your friends, what more could you want?",
+  },
+] as const satisfies readonly VictoriaMemory[];
 
 export const futurePlans = [
   {
     id: "airport",
-    title: "Something to look forward to",
-    description: "Replace this with a real plan, a tiny date idea, or a shared promise.",
+    title: "Arriving back in London",
+    description: "I want to see you as soon as you land, just let me know.",
     targetDate: "2026-09-18",
     category: "Together",
     completed: false,
     displayOrder: 1,
   },
   {
-    id: "cosy-day",
-    title: "A cosy day with no rush",
-    description: "Placeholder plan for Freddie to customise.",
+    id: "tennis",
+    title: "An actual tennis match",
+    description: "You said tennis keeps you disciplined. Let's see how disciplined you stay once I'm two games up.",
     targetDate: undefined,
-    category: "Home",
+    category: "Together",
     completed: false,
     displayOrder: 2,
   },
-] as const;
+  {
+    id: "ski-trip",
+    title: "Ski trip",
+    description: "Somewhere cold with good hot chocolate after. You've got the skill, I've got the enthusiasm and none of the technique.",
+    targetDate: undefined,
+    category: "Adventure",
+    completed: false,
+    displayOrder: 7,
+  },
+  {
+    id: "spain-trip",
+    title: "Antony's villa in spain",
+    description: "I'm sure it'll happen at some point, couples trip to a villa in the middle of nowhere",
+    targetDate: undefined,
+    category: "Travel",
+    completed: false,
+    displayOrder: 3,
+  },
+  {
+    id: "casino-rematch",
+    title: "Strip Poker",
+    description: "I want to see the gambling queen legacy in action, shame there'll only be five hands before we move on to the good part",
+    targetDate: undefined,
+    category: "Chaos",
+    completed: false,
+    displayOrder: 4,
+  },
+  {
+    id: "sturgeon-caviar",
+    title: "Watching me fish a sturgeon for caviar",
+    description: "No further explanation. I wanna do it at some point though now I've thought about it",
+    targetDate: undefined,
+    category: "Absurd",
+    completed: false,
+    displayOrder: 7,
+  },
+] as const satisfies readonly VictoriaFuturePlan[];
 
 export const milestones = [
   {
     id: "official",
-    title: "Became official",
-    description: "A quiet little date worth remembering.",
+    title: "The day it began",
+    description: "I will remember the date now next time you ask",
     occursAt: OFFICIAL_RELATIONSHIP_DATE,
     displayOrder: 1,
   },
-] as const;
+  {
+    id: "graduation",
+    title: "Your graduation",
+    description: "You only went and got a first, wouldn't expect anything less",
+    occursAt: "2026-07-21",
+    displayOrder: 2,
+  },
+  {
+    id: "mauritius-departure",
+    title: "Off to Mauritius",
+    description: "Business class flight away to leave me alone coding this website instead of being with you",
+    occursAt: "2026-07-24",
+    displayOrder: 3,
+  },
+] as const satisfies readonly VictoriaMilestone[];
 
 export const easterEggs = [
   {
     id: "since-date",
     triggerLabel: "Since date",
-    title: "A hidden note",
-    body: "Replace this with something tiny and sincere.",
+    title: "Gift Certificate",
+    body: "If you find this, you are entitled to one free rose toy on me",
   },
   {
     id: "countdown-hold",
     triggerLabel: "Countdown hold",
     title: "Still counting",
-    body: "A placeholder for a secret countdown note.",
+    body: "I don't even know how you found this you must be really bored",
   },
-] as const;
-
-planSchema.array().parse(futurePlans);
-memorySchema.array().parse(memories);
-milestoneSchema.array().parse(milestones);
-eggSchema.array().parse(easterEggs);
+] as const satisfies readonly VictoriaEasterEgg[];

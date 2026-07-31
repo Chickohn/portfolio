@@ -55,6 +55,22 @@ const config: Config = {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
+  		},
+  		// Used by the Victoria route in place of framer-motion. Pair with the
+  		// `motion-safe:` variant so reduced-motion users get no animation.
+  		keyframes: {
+  			'victoria-rise': {
+  				from: { opacity: '0', transform: 'translateY(12px)' },
+  				to: { opacity: '1', transform: 'translateY(0)' }
+  			},
+  			'victoria-fade': {
+  				from: { opacity: '0' },
+  				to: { opacity: '1' }
+  			}
+  		},
+  		animation: {
+  			'victoria-rise': 'victoria-rise 0.35s ease-out both',
+  			'victoria-fade': 'victoria-fade 0.25s ease-out both'
   		}
   	}
   },
