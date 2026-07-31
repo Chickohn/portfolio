@@ -15,7 +15,7 @@ export function VictoriaClaimForm({ token }: { token: string }) {
       <p className="text-xs font-semibold uppercase tracking-[0.24em] text-rose-800">One-time link</p>
       <h1 className="mt-4 text-2xl font-semibold">Claim this device</h1>
       <p className="mt-3 text-sm leading-6 text-stone-700">
-        This will bind access to this browser using a secure private cookie. The link cannot be used again.
+        Hi Victoria, I have been working on this for you cos I'm cute as hell, press this button to enter this cute as hell website.
       </p>
       <button
         type="submit"
