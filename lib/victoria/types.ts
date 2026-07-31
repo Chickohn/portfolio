@@ -44,6 +44,38 @@ export type VictoriaCountdownSettings = {
   timezone: string;
 };
 
+export type VictoriaAdminHideType = "message" | "media" | "memory" | "milestone" | "plan";
+
+export type VictoriaAdminUserRow = {
+  username: VictoriaUsername;
+  displayName: string;
+  welcomeCompletedAt: string | null;
+  lastSeenAt: string | null;
+};
+
+export type VictoriaAdminPageViewRow = {
+  id: string;
+  username: VictoriaUsername;
+  deviceLabel: string;
+  browserFamily: string;
+  osFamily: string;
+  createdAt: string;
+};
+
+export type VictoriaAdminVisitRow = {
+  day: string;
+  count: number;
+};
+
+export type VictoriaAdminContentRow = {
+  id: string;
+  preview: string;
+  authorUsername: VictoriaUsername;
+  createdAt: string;
+  hiddenAt: string | null;
+  meta?: string | null;
+};
+
 /** Shape-compatible with the static VictoriaMemory in lib/victoria/content.ts,
  * so the client can merge hand-authored and user-created memories into one list. */
 export type VictoriaUserMemory = {

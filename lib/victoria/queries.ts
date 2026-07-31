@@ -1,7 +1,19 @@
 import { DEFAULT_COUNTDOWN_TARGET_ISO, DEFAULT_COUNTDOWN_TIMEZONE, VICTORIA_PAGE_SIZE } from "./constants";
 import type { VictoriaFuturePlan, VictoriaMilestone } from "./content";
 import { dbQuery, toIsoString, toIsoStringOrNull, type DbRow } from "./db";
-import type { VictoriaCountdownSettings, VictoriaMessage, VictoriaSession, VictoriaUser, VictoriaUserMemory } from "./types";
+import type {
+  VictoriaAdminContentRow,
+  VictoriaAdminHideType,
+  VictoriaAdminPageViewRow,
+  VictoriaAdminUserRow,
+  VictoriaAdminVisitRow,
+  VictoriaCountdownSettings,
+  VictoriaMessage,
+  VictoriaSession,
+  VictoriaUser,
+  VictoriaUserMemory,
+  VictoriaUsername,
+} from "./types";
 
 function mapUser(row: DbRow): VictoriaUser {
   return {
@@ -412,14 +424,30 @@ export async function getMediaForMemories(memoryIds: readonly string[]): Promise
   return rows.map(mapMedia);
 }
 
-export async function getActivitySummary() {
-  // Five independent aggregates, run concurrently. This is within the pool's
-  // `max`, and running them in parallel means each connection is held for one
-  // query's duration instead of five — which is what actually reduces the
-  // connection pressure described in ./db.ts.
-  const [users, visits, messages, sessions, events] = await Promise.all([
+function truncatePreview(value: string, max = 120) {
+  const trimmed = value.trim();
+  if (trimmed.length <= max) {
+    return trimmed;
+  }
+  return `${trimmed.slice(0, max - 1)}…`;
+}
+
+function mapAdminContentRow(row: DbRow, preview: string, meta?: string | null): VictoriaAdminContentRow {
+  return {
+    id: String(row.id),
+    preview,
+    authorUsername: row.author_username as VictoriaUsername,
+    createdAt: toIsoString(row.created_at),
+    hiddenAt: toIsoStringOrNull(row.hidden_at),
+    meta: meta ?? null,
+  };
+}
+
+export async function getAdminDashboardData() {
+  const [countdown, users, pageViews, visits, messages, media, memories, milestones, plans] = await Promise.all([
+    getCountdownSettings(),
     dbQuery(
-      "activitySummary:users",
+      "adminDashboard:users",
       `
         SELECT u.username, u.display_name, u.welcome_completed_at, max(d.last_seen_at) AS last_seen_at
         FROM victoria_users u
@@ -429,7 +457,19 @@ export async function getActivitySummary() {
       `,
     ),
     dbQuery(
-      "activitySummary:visits",
+      "adminDashboard:pageViews",
+      `
+        SELECT e.id, u.username, d.label AS device_label, d.browser_family, d.os_family, e.created_at
+        FROM victoria_activity_events e
+        JOIN victoria_users u ON u.id = e.user_id
+        JOIN victoria_devices d ON d.id = e.device_id
+        WHERE e.event_type = 'page_view'
+        ORDER BY e.created_at DESC
+        LIMIT 500
+      `,
+    ),
+    dbQuery(
+      "adminDashboard:visits",
       `
         SELECT date_trunc('day', created_at) AS day, count(*)::int AS count
         FROM victoria_activity_events
@@ -440,37 +480,167 @@ export async function getActivitySummary() {
       `,
     ),
     dbQuery(
-      "activitySummary:messages",
+      "adminDashboard:messages",
       `
-        SELECT u.username, count(m.id)::int AS count
-        FROM victoria_users u
-        LEFT JOIN victoria_messages m ON m.author_user_id = u.id AND m.hidden_at IS NULL
-        GROUP BY u.username
-        ORDER BY u.username
+        SELECT m.id, m.body, m.created_at, m.hidden_at, u.username AS author_username
+        FROM victoria_messages m
+        JOIN victoria_users u ON u.id = m.author_user_id
+        ORDER BY m.created_at DESC
+        LIMIT 200
       `,
     ),
     dbQuery(
-      "activitySummary:sessions",
+      "adminDashboard:media",
       `
-        SELECT d.label, u.username, d.browser_family, d.os_family, d.claimed_at, d.last_seen_at, d.revoked_at
-        FROM victoria_devices d
-        JOIN victoria_users u ON u.id = d.user_id
-        ORDER BY d.last_seen_at DESC
-        LIMIT 20
+        SELECT m.id, m.caption, m.original_filename, m.memory_id, m.created_at, m.hidden_at,
+               u.username AS author_username
+        FROM victoria_media m
+        JOIN victoria_users u ON u.id = m.uploaded_by_user_id
+        ORDER BY m.created_at DESC
+        LIMIT 200
       `,
     ),
     dbQuery(
-      "activitySummary:events",
+      "adminDashboard:memories",
       `
-        SELECT event_type, count(*)::int AS count
-        FROM victoria_activity_events
-        GROUP BY event_type
-        ORDER BY event_type
+        SELECT m.id, m.title, m.body, m.occurs_on, m.created_at, m.hidden_at,
+               u.username AS author_username
+        FROM victoria_user_memories m
+        JOIN victoria_users u ON u.id = m.created_by_user_id
+        ORDER BY m.created_at DESC
+        LIMIT 200
+      `,
+    ),
+    dbQuery(
+      "adminDashboard:milestones",
+      `
+        SELECT m.id, m.title, m.description, m.occurs_on, m.created_at, m.hidden_at,
+               u.username AS author_username
+        FROM victoria_user_milestones m
+        JOIN victoria_users u ON u.id = m.created_by_user_id
+        ORDER BY m.created_at DESC
+        LIMIT 200
+      `,
+    ),
+    dbQuery(
+      "adminDashboard:plans",
+      `
+        SELECT p.id, p.title, p.description, p.target_date, p.created_at, p.hidden_at,
+               u.username AS author_username
+        FROM victoria_user_future_plans p
+        JOIN victoria_users u ON u.id = p.created_by_user_id
+        ORDER BY p.created_at DESC
+        LIMIT 200
       `,
     ),
   ]);
 
-  return { users, visits, messages, sessions, events };
+  return {
+    countdown,
+    users: users.map(
+      (row): VictoriaAdminUserRow => ({
+        username: row.username as VictoriaUsername,
+        displayName: String(row.display_name),
+        welcomeCompletedAt: toIsoStringOrNull(row.welcome_completed_at),
+        lastSeenAt: toIsoStringOrNull(row.last_seen_at),
+      }),
+    ),
+    pageViews: pageViews.map(
+      (row): VictoriaAdminPageViewRow => ({
+        id: String(row.id),
+        username: row.username as VictoriaUsername,
+        deviceLabel: String(row.device_label),
+        browserFamily: String(row.browser_family),
+        osFamily: String(row.os_family),
+        createdAt: toIsoString(row.created_at),
+      }),
+    ),
+    visits: visits.map(
+      (row): VictoriaAdminVisitRow => ({
+        day: toIsoString(row.day),
+        count: Number(row.count),
+      }),
+    ),
+    messages: messages.map((row) => mapAdminContentRow(row, truncatePreview(String(row.body)))),
+    media: media.map((row) =>
+      mapAdminContentRow(
+        row,
+        truncatePreview(String(row.caption || row.original_filename || "Photo")),
+        row.memory_id ? `memory ${String(row.memory_id)}` : null,
+      ),
+    ),
+    memories: memories.map((row) =>
+      mapAdminContentRow(row, truncatePreview(String(row.title)), String(row.occurs_on)),
+    ),
+    milestones: milestones.map((row) =>
+      mapAdminContentRow(row, truncatePreview(String(row.title)), String(row.occurs_on)),
+    ),
+    plans: plans.map((row) =>
+      mapAdminContentRow(
+        row,
+        truncatePreview(String(row.title)),
+        row.target_date ? String(row.target_date) : null,
+      ),
+    ),
+  };
+}
+
+export async function updateCountdownSettings(input: {
+  label: string;
+  targetAt: string;
+  timezone: string;
+}): Promise<VictoriaCountdownSettings> {
+  const rows = await dbQuery(
+    "updateCountdownSettings",
+    `
+      INSERT INTO victoria_countdown_settings (id, label, target_at, timezone, updated_at)
+      VALUES ('return', $1, $2::timestamptz, $3, now())
+      ON CONFLICT (id) DO UPDATE
+        SET label = excluded.label,
+            target_at = excluded.target_at,
+            timezone = excluded.timezone,
+            updated_at = now()
+      RETURNING label, target_at, timezone
+    `,
+    [input.label, input.targetAt, input.timezone],
+  );
+
+  return mapCountdown(rows[0]);
+}
+
+export async function setAdminContentHidden(type: VictoriaAdminHideType, id: string, hidden: boolean): Promise<boolean> {
+  const table =
+    type === "message"
+      ? "victoria_messages"
+      : type === "media"
+        ? "victoria_media"
+        : type === "memory"
+          ? "victoria_user_memories"
+          : type === "milestone"
+            ? "victoria_user_milestones"
+            : "victoria_user_future_plans";
+
+  const withUpdatedAt = type === "message";
+  const rows = await dbQuery(
+    `setAdminContentHidden:${type}`,
+    withUpdatedAt
+      ? `
+          UPDATE ${table}
+          SET hidden_at = CASE WHEN $2::boolean THEN now() ELSE NULL END,
+              updated_at = now()
+          WHERE id = $1::uuid
+          RETURNING id
+        `
+      : `
+          UPDATE ${table}
+          SET hidden_at = CASE WHEN $2::boolean THEN now() ELSE NULL END
+          WHERE id = $1::uuid
+          RETURNING id
+        `,
+    [id, hidden],
+  );
+
+  return rows.length > 0;
 }
 
 export { mapUser };

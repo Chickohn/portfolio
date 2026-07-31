@@ -156,6 +156,33 @@ export async function requireVictoriaOwner(): Promise<VictoriaSession> {
   return session;
 }
 
+export class VictoriaAuthError extends Error {
+  status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "VictoriaAuthError";
+    this.status = status;
+  }
+}
+
+/** API-route owner gate: throws instead of redirecting so handlers can return JSON 401/403. */
+export async function requireVictoriaOwnerApi(): Promise<VictoriaSession> {
+  const host = getCurrentHost();
+  if (!isVictoriaFeatureEnabled(host)) {
+    throw new VictoriaAuthError("Unauthorised", 401);
+  }
+
+  const session = await validateVictoriaSession();
+  if (!session) {
+    throw new VictoriaAuthError("Unauthorised", 401);
+  }
+  if (session.user.role !== "owner") {
+    throw new VictoriaAuthError("Forbidden", 403);
+  }
+  return session;
+}
+
 async function createDeviceSessionForUserId(userId: string, deviceLabelPrefix = "") {
   const userAgent = headers().get("user-agent");
   const rawSessionToken = createRawToken();

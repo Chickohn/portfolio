@@ -146,7 +146,7 @@ export function VictoriaExperience({
             </h1>
           </div>
           <p className="mt-4 max-w-xl text-pretty text-base leading-7 text-stone-700">
-            I thought I'd make this for when we miss each other or you want to send me a message in secret - Hopefully it's not too much lol
+            I thought I'd make this for when we miss each other or you want to send me a message in secret
           </p>
         </header>
 
@@ -296,7 +296,7 @@ export function VictoriaExperience({
 
         {session.user.role === "owner" ? (
           <a href="/victoria/admin/activity" className="rounded-full bg-stone-950 px-4 py-3 text-center text-sm font-medium text-white shadow-lg">
-            Freddie activity dashboard
+            Admin
           </a>
         ) : null}
 
