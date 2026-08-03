@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Star } from "lucide-react";
 
-import { easterEggs } from "@/lib/victoria/content";
 import { useVictoriaEggTracker } from "./egg-tracker";
 
 /** Each tap adds this much charge; nothing pins it to round stages. */
@@ -22,9 +21,8 @@ function clamp01(value: number) {
 }
 
 export function VictoriaEasterEggs() {
-  const { markFound } = useVictoriaEggTracker();
+  const { discoverEgg } = useVictoriaEggTracker();
   const [progress, setProgress] = useState(0);
-  const [found, setFound] = useState<string | null>(null);
   // Same stroke-dashoffset transition covers both directions; only its
   // duration changes, so growth (fast) and retraction (slow) share one value.
   const [transitionMs, setTransitionMs] = useState(GROW_TRANSITION_MS);
@@ -66,14 +64,8 @@ export function VictoriaEasterEggs() {
     return clamp01(1 - offset / RING_CIRCUMFERENCE);
   }
 
-  async function reveal(id: string) {
-    setFound(id);
-    markFound(id);
-    await fetch("/api/victoria/activity", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ eventType: "easter_egg_found", metadata: { eggId: id } }),
-    });
+  function reveal(id: string) {
+    discoverEgg(id);
   }
 
   function handleTap() {
@@ -83,7 +75,7 @@ export function VictoriaEasterEggs() {
     setProgress(next);
 
     if (next >= 1) {
-      reveal("since-date").catch(() => undefined);
+      reveal("since-date");
       setProgress(0);
       return;
     }
@@ -97,7 +89,6 @@ export function VictoriaEasterEggs() {
     }, GROW_TRANSITION_MS);
   }
 
-  const egg = easterEggs.find((item) => item.id === found);
   const dashOffset = RING_CIRCUMFERENCE * (1 - progress);
 
   return (
@@ -130,15 +121,6 @@ export function VictoriaEasterEggs() {
         </svg>
         <Star aria-hidden className="h-5 w-5" />
       </button>
-      {egg ? (
-        <div className="absolute bottom-14 right-0 w-64 rounded-3xl border border-white/60 bg-[#fff8f1] p-4 text-sm text-stone-800 shadow-2xl">
-          <p className="font-semibold text-stone-950">{egg.title}</p>
-          <p className="mt-1 leading-6">{egg.body}</p>
-          <button type="button" className="mt-3 text-xs font-medium text-rose-700" onClick={() => setFound(null)}>
-            Tuck away
-          </button>
-        </div>
-      ) : null}
     </div>
   );
 }

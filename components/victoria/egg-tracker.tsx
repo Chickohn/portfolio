@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { easterEggs } from "@/lib/victoria/content";
 
@@ -9,6 +9,14 @@ type EggTrackerValue = {
   foundCount: number;
   totalCount: number;
   markFound: (id: string) => void;
+  /**
+   * Marks found and logs activity. Eggs whose reveal is the thing you just
+   * opened (the minigame) pass `toast: false` so the shared card doesn't
+   * appear on top of it and read as a different egg firing.
+   */
+  discoverEgg: (id: string, options?: { toast?: boolean }) => void;
+  toastEggId: string | null;
+  dismissToast: () => void;
 };
 
 const EggTrackerContext = createContext<EggTrackerValue | null>(null);
@@ -31,27 +39,59 @@ export function VictoriaEggTrackerProvider({
     }
     return next;
   });
+  const [toastEggId, setToastEggId] = useState<string | null>(null);
+  const foundIdsRef = useRef(foundIds);
+  foundIdsRef.current = foundIds;
+
+  const markFound = useCallback((id: string) => {
+    if (!knownEggIds.has(id)) {
+      return;
+    }
+    setFoundIds((current) => {
+      if (current.has(id)) {
+        return current;
+      }
+      const next = new Set(current);
+      next.add(id);
+      return next;
+    });
+  }, []);
+
+  const discoverEgg = useCallback(
+    (id: string, options?: { toast?: boolean }) => {
+      if (!knownEggIds.has(id)) {
+        return;
+      }
+      const alreadyFound = foundIdsRef.current.has(id);
+      markFound(id);
+      if (options?.toast !== false) {
+        setToastEggId(id);
+      }
+      if (alreadyFound) {
+        return;
+      }
+      void fetch("/api/victoria/activity", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ eventType: "easter_egg_found", metadata: { eggId: id } }),
+      }).catch(() => undefined);
+    },
+    [markFound],
+  );
+
+  const dismissToast = useCallback(() => setToastEggId(null), []);
 
   const value = useMemo<EggTrackerValue>(
     () => ({
       foundIds,
       foundCount: foundIds.size,
       totalCount: easterEggs.length,
-      markFound(id: string) {
-        if (!knownEggIds.has(id)) {
-          return;
-        }
-        setFoundIds((current) => {
-          if (current.has(id)) {
-            return current;
-          }
-          const next = new Set(current);
-          next.add(id);
-          return next;
-        });
-      },
+      markFound,
+      discoverEgg,
+      toastEggId,
+      dismissToast,
     }),
-    [foundIds],
+    [foundIds, markFound, discoverEgg, toastEggId, dismissToast],
   );
 
   return <EggTrackerContext.Provider value={value}>{children}</EggTrackerContext.Provider>;
@@ -74,6 +114,26 @@ export function VictoriaEggCounter() {
       <div className="pointer-events-auto rounded-full border border-white/60 bg-white/80 px-3 py-1.5 text-xs font-semibold tabular-nums text-stone-800 shadow-lg backdrop-blur">
         {foundCount}/{totalCount} eggs
       </div>
+    </div>
+  );
+}
+
+/** Shared reveal card for any egg (star, date, etc.). */
+export function VictoriaEggToast() {
+  const { toastEggId, dismissToast } = useVictoriaEggTracker();
+  const egg = easterEggs.find((item) => item.id === toastEggId);
+
+  if (!egg) {
+    return null;
+  }
+
+  return (
+    <div className="fixed bottom-20 right-4 z-50 w-64 rounded-3xl border border-white/60 bg-[#fff8f1] p-4 text-sm text-stone-800 shadow-2xl">
+      <p className="font-semibold text-stone-950">{egg.title}</p>
+      <p className="mt-1 leading-6">{egg.body}</p>
+      <button type="button" className="mt-3 text-xs font-medium text-rose-700" onClick={dismissToast}>
+        Tuck away
+      </button>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { HeartHandshake } from "lucide-react";
 
 import { getCountdownParts } from "@/lib/victoria/dates";
+import { useVictoriaEggTracker } from "./egg-tracker";
 
 type Props = {
   label: string;
@@ -12,6 +13,7 @@ type Props = {
 };
 
 export function VictoriaCountdown({ label, targetAt, initialNow }: Props) {
+  const { discoverEgg } = useVictoriaEggTracker();
   const [parts, setParts] = useState(() => getCountdownParts(targetAt, new Date(initialNow)));
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -51,6 +53,8 @@ export function VictoriaCountdown({ label, targetAt, initialNow }: Props) {
   }, [targetAt]);
 
   function playFart() {
+    // Tracked for the counter, but the sound is the whole joke — no card.
+    discoverEgg("fart-heart", { toast: false });
     const audio = audioRef.current;
     if (!audio) return;
     audio.pause();

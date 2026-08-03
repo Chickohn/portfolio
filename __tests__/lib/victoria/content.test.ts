@@ -49,9 +49,10 @@ describe("victoria content", () => {
     }
   });
 
-  it("gives every plan a distinct display order", () => {
-    const orders = futurePlans.map((plan) => plan.displayOrder);
-    expect(new Set(orders).size).toBe(orders.length);
+  it("derives display order from list position, so no two entries can collide", () => {
+    for (const collection of [futurePlans, milestones]) {
+      expect(collection.map((entry) => entry.displayOrder)).toEqual(collection.map((_, index) => index + 1));
+    }
   });
 
   it("has non-empty copy for every renderable field", () => {

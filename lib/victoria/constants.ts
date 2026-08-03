@@ -7,6 +7,8 @@ export const OFFICIAL_RELATIONSHIP_DATE = "2026-07-11";
 export const DEFAULT_COUNTDOWN_TARGET_ISO = "2026-09-18T15:00:00.000Z";
 export const DEFAULT_COUNTDOWN_TIMEZONE = "Europe/London";
 
+export const VICTORIA_HEART_TILES_GAME_ID = "heart-tiles";
+
 export const VICTORIA_MESSAGE_LIMIT = 10000;
 export const VICTORIA_PAGE_SIZE = 30;
 /**

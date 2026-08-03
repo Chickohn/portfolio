@@ -58,7 +58,7 @@ export const dailyMessages = [
   "Thinking about you today. And yesterday. Just thought you should know.",
   "Can't waitt to see you again <333",
   "t'es la numéro 1",
-  "Getting the train but it's not to the Victoria I'm hoping for is going to suck",
+  "Getting the train but it's not to the Victoria I'm hoping for",
   "You're beautiful, funny, and sexy as hell - Of course I'm going to make you mine",
   "Send me a pic of your toes lol - hopefully this isn't the first one that comes up",
   "Tu me rends plus heureux que tu ne le penses <3",
@@ -102,7 +102,11 @@ export const memories = [
   },
 ] as const satisfies readonly VictoriaMemory[];
 
-export const futurePlans = [
+/**
+ * Display order is the position in this array, not a hand-written number, so
+ * two entries can't claim the same slot. Reorder by moving the entry.
+ */
+const futurePlanEntries = [
   {
     id: "airport",
     title: "Arriving back in London",
@@ -110,7 +114,6 @@ export const futurePlans = [
     targetDate: "2026-09-18",
     category: "Together",
     completed: false,
-    displayOrder: 1,
   },
   {
     id: "tennis",
@@ -119,16 +122,6 @@ export const futurePlans = [
     targetDate: undefined,
     category: "Together",
     completed: false,
-    displayOrder: 2,
-  },
-  {
-    id: "ski-trip",
-    title: "Ski trip",
-    description: "Somewhere cold with good hot chocolate after. You've got the skill, I've got the enthusiasm and none of the technique.",
-    targetDate: undefined,
-    category: "Adventure",
-    completed: false,
-    displayOrder: 7,
   },
   {
     id: "spain-trip",
@@ -137,7 +130,6 @@ export const futurePlans = [
     targetDate: undefined,
     category: "Travel",
     completed: false,
-    displayOrder: 3,
   },
   {
     id: "casino-rematch",
@@ -146,7 +138,14 @@ export const futurePlans = [
     targetDate: undefined,
     category: "Chaos",
     completed: false,
-    displayOrder: 4,
+  },
+  {
+    id: "ski-trip",
+    title: "Ski trip",
+    description: "Somewhere cold with good hot chocolate after. You've got the skill, I've got the enthusiasm and none of the technique.",
+    targetDate: undefined,
+    category: "Adventure",
+    completed: false,
   },
   {
     id: "sturgeon-caviar",
@@ -155,45 +154,58 @@ export const futurePlans = [
     targetDate: undefined,
     category: "Absurd",
     completed: false,
-    displayOrder: 7,
   },
-] as const satisfies readonly VictoriaFuturePlan[];
+] as const satisfies readonly Omit<VictoriaFuturePlan, "displayOrder">[];
 
-export const milestones = [
+export const futurePlans: readonly VictoriaFuturePlan[] = futurePlanEntries.map((plan, index) => ({
+  ...plan,
+  displayOrder: index + 1,
+}));
+
+/** Same positional ordering as futurePlans above. */
+const milestoneEntries = [
   {
     id: "official",
     title: "The day it began",
     description: "I will remember the date now next time you ask",
     occursAt: OFFICIAL_RELATIONSHIP_DATE,
-    displayOrder: 1,
   },
   {
     id: "graduation",
     title: "Your graduation",
     description: "You only went and got a first, wouldn't expect anything less",
     occursAt: "2026-07-21",
-    displayOrder: 2,
   },
   {
     id: "mauritius-departure",
     title: "Off to Mauritius",
     description: "Business class flight away to leave me alone coding this website instead of being with you",
     occursAt: "2026-07-24",
-    displayOrder: 3,
   },
-] as const satisfies readonly VictoriaMilestone[];
+] as const satisfies readonly Omit<VictoriaMilestone, "displayOrder">[];
+
+export const milestones: readonly VictoriaMilestone[] = milestoneEntries.map((milestone, index) => ({
+  ...milestone,
+  displayOrder: index + 1,
+}));
 
 export const easterEggs = [
   {
     id: "since-date",
     triggerLabel: "Since date",
     title: "Gift Certificate",
-    body: "If you find this, you are entitled to one free rose toy on me",
+    body: "If you find this, you are entitled to one free rose toy on me - This took you so much longer than it should have",
   },
   {
-    id: "countdown-hold",
-    triggerLabel: "Countdown hold",
-    title: "Still counting",
-    body: "I don't even know how you found this you must be really bored",
+    id: "fart-heart",
+    triggerLabel: "Countdown heart",
+    title: "Excuse you",
+    body: "That's the level of romance you can expect from me, sorry lol",
+  },
+  {
+    id: "tile-minigame",
+    triggerLabel: "Relationship date",
+    title: "Tile minigame",
+    body: "If you can beat me at this I'll buy you anything you want.",
   },
 ] as const satisfies readonly VictoriaEasterEgg[];

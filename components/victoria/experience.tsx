@@ -5,7 +5,8 @@ import { CalendarHeart, Check, Clock, ImagePlus, Plus } from "lucide-react";
 
 import { VictoriaCountdown } from "./countdown";
 import { VictoriaEasterEggs } from "./easter-eggs";
-import { VictoriaEggCounter, VictoriaEggTrackerProvider } from "./egg-tracker";
+import { VictoriaEggCounter, VictoriaEggToast, VictoriaEggTrackerProvider } from "./egg-tracker";
+import { VictoriaHeartTiles } from "./heart-tiles";
 import { VictoriaMessageWall } from "./message-wall";
 import { VictoriaNewFuturePlanForm } from "./new-future-plan-form";
 import { VictoriaNewMemoryForm } from "./new-memory-form";
@@ -61,6 +62,7 @@ export function VictoriaExperience({
   const [isAddingMemory, setIsAddingMemory] = useState(false);
   const [isAddingMilestone, setIsAddingMilestone] = useState(false);
   const [isAddingPlan, setIsAddingPlan] = useState(false);
+  const [isDateOverlayOpen, setIsDateOverlayOpen] = useState(false);
   const newMemoryRef = useRef<HTMLDivElement>(null);
   const newMilestoneRef = useRef<HTMLDivElement>(null);
   const newPlanRef = useRef<HTMLDivElement>(null);
@@ -129,14 +131,15 @@ export function VictoriaExperience({
   const allMilestones = [...milestones, ...userMilestones].sort((left, right) => left.occursAt.localeCompare(right.occursAt));
 
   // Future plans aren't all dated (many are open-ended), so there's no single
-  // correct sort key across both lists. Hand-authored ones keep their curated
-  // displayOrder; user-added ones just follow after, in the order they were made.
-  const sortedPlans = [...futurePlans.slice().sort((left, right) => left.displayOrder - right.displayOrder), ...userFuturePlans];
+  // correct sort key across both lists. Hand-authored ones are already in their
+  // curated order; user-added ones just follow after, in the order they were made.
+  const sortedPlans = [...futurePlans, ...userFuturePlans];
 
   return (
     <VictoriaEggTrackerProvider initialFoundIds={foundEggIds}>
       <div className="min-h-screen overflow-hidden bg-[#f7efe7] text-stone-950">
         <VictoriaEggCounter />
+        <VictoriaEggToast />
         <VictoriaWelcome
           username={session.user.username}
           lines={victoriaWelcome[session.user.username]}
@@ -306,9 +309,20 @@ export function VictoriaExperience({
         ) : null}
 
         <footer className="pb-8 text-center text-xs text-stone-500">
-          Since {formatBritishDate(OFFICIAL_RELATIONSHIP_DATE)} · {sinceDays} days and counting.
+          Since{" "}
+          <button
+            type="button"
+            onClick={() => setIsDateOverlayOpen(true)}
+            className="cursor-default appearance-none border-0 bg-transparent p-0 text-xs text-stone-500 hover:text-stone-500 focus:outline-none focus-visible:outline-none"
+          >
+            {formatBritishDate(OFFICIAL_RELATIONSHIP_DATE)}
+          </button>{" "}
+          · {sinceDays} days and counting.
         </footer>
       </div>
+      {isDateOverlayOpen ? (
+        <VictoriaHeartTiles currentUsername={session.user.username} onClose={() => setIsDateOverlayOpen(false)} />
+      ) : null}
       <VictoriaEasterEggs />
       </div>
     </VictoriaEggTrackerProvider>

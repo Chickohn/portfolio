@@ -9,6 +9,7 @@ import type {
   VictoriaAdminVisitRow,
   VictoriaCountdownSettings,
   VictoriaMessage,
+  VictoriaMinigameScoreRow,
   VictoriaSession,
   VictoriaUser,
   VictoriaUserMemory,
@@ -655,6 +656,66 @@ export async function setAdminContentHidden(type: VictoriaAdminHideType, id: str
   );
 
   return rows.length > 0;
+}
+
+export async function getMinigameScores(gameId: string): Promise<VictoriaMinigameScoreRow[]> {
+  const rows = await dbQuery(
+    "getMinigameScores",
+    `
+      SELECT u.username, u.display_name, coalesce(s.high_score, 0)::int AS high_score
+      FROM victoria_users u
+      LEFT JOIN victoria_minigame_scores s
+        ON s.user_id = u.id AND s.game_id = $1
+      ORDER BY u.username
+    `,
+    [gameId],
+  );
+
+  return rows.map((row) => ({
+    username: row.username as VictoriaUsername,
+    displayName: String(row.display_name),
+    highScore: Number(row.high_score),
+  }));
+}
+
+/** Saves only if the new score beats the stored high score. Returns the best score after. */
+export async function submitMinigameScore(
+  session: VictoriaSession,
+  gameId: string,
+  score: number,
+): Promise<{ highScore: number; isNewBest: boolean }> {
+  const existing = await dbQuery(
+    "submitMinigameScore:read",
+    `
+      SELECT high_score
+      FROM victoria_minigame_scores
+      WHERE user_id = $1::uuid AND game_id = $2
+      LIMIT 1
+    `,
+    [session.user.id, gameId],
+  );
+  const previous = Number(existing[0]?.high_score ?? 0);
+  if (score <= previous) {
+    return { highScore: previous, isNewBest: false };
+  }
+
+  const rows = await dbQuery(
+    "submitMinigameScore:write",
+    `
+      INSERT INTO victoria_minigame_scores (user_id, game_id, high_score, updated_at)
+      VALUES ($1::uuid, $2, $3, now())
+      ON CONFLICT (user_id, game_id) DO UPDATE
+        SET high_score = excluded.high_score,
+            updated_at = now()
+      RETURNING high_score
+    `,
+    [session.user.id, gameId, score],
+  );
+
+  return {
+    highScore: Number(rows[0]?.high_score ?? score),
+    isNewBest: true,
+  };
 }
 
 export { mapUser };

@@ -44,6 +44,12 @@ export type VictoriaCountdownSettings = {
   timezone: string;
 };
 
+export type VictoriaMinigameScoreRow = {
+  username: VictoriaUsername;
+  displayName: string;
+  highScore: number;
+};
+
 export type VictoriaAdminHideType = "message" | "media" | "memory" | "milestone" | "plan";
 
 export type VictoriaAdminUserRow = {
