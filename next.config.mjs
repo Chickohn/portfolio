@@ -141,16 +141,23 @@ const nextConfig = {
           },
         ],
       },
-      // Cache control for static assets
-      {
-        source: '/:path*\\.(png|jpg|jpeg|gif|webp|avif|ico|svg|js|css|woff|woff2|ttf|eot)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
+      // Deliberately no blanket `Cache-Control: immutable` rule keyed off file
+      // extension here.
+      //
+      // A previous version matched '/:path*\\.(png|...|js|css|...)' and stamped
+      // every match with max-age=31536000, immutable. Next.js applies headers by
+      // path, not by status, so a 404 for an asset that did not exist yet — which
+      // happens in the window while a new deployment propagates — was cached as
+      // immutable for a year by both Vercel and Cloudflare. The result was a live
+      // site whose HTML referenced a real stylesheet that the CDN insisted was
+      // "Not Found" (served as text/plain, so the browser also rejected the MIME
+      // type). Recovering needed a manual purge.
+      //
+      // Build output under /_next/static already gets immutable caching from Next
+      // itself, and its filenames are content-hashed, so that is the only place
+      // the header is actually safe. Files in /public are not hashed, so caching
+      // them for a year would pin stale copies anyway.
+
       // Service worker cache control
       {
         source: '/sw.js',
