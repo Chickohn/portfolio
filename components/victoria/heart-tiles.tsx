@@ -12,16 +12,18 @@ const TILE_HEIGHT_RATIO = 0.22;
 const HIT_LINE_RATIO = 0.82;
 const HIT_WINDOW_RATIO = 0.14;
 const BASE_SPEED = 0.28; // board-heights per second
-const SPEED_PER_HIT = 0.006;
-const MAX_SPEED = 0.75;
+const MAX_SPEED = 1.5; // ~2× the previous 0.75 cap
+const SCORE_AT_MAX_SPEED = 150;
+const SPEED_PER_HIT = (MAX_SPEED - BASE_SPEED) / SCORE_AT_MAX_SPEED;
 const BASE_SPAWN_MS = 720;
-const MIN_SPAWN_MS = 320;
+const MIN_SPAWN_MS = 160; // half of the old floor so density keeps up with faster falls
+const SPAWN_REDUCTION_PER_HIT = (BASE_SPAWN_MS - MIN_SPAWN_MS) / SCORE_AT_MAX_SPEED;
 
 type Tile = {
   id: number;
   lane: number;
   y: number; // 0 = top of board, 1 = bottom
-  hit: boolean;
+  el: HTMLDivElement;
 };
 
 type Phase = "ready" | "playing" | "over";
@@ -36,7 +38,7 @@ function speedForScore(score: number) {
 }
 
 function spawnIntervalForScore(score: number) {
-  return Math.max(MIN_SPAWN_MS, BASE_SPAWN_MS - score * 8);
+  return Math.max(MIN_SPAWN_MS, BASE_SPAWN_MS - score * SPAWN_REDUCTION_PER_HIT);
 }
 
 export function VictoriaHeartTiles({ currentUsername, onClose }: Props) {
@@ -50,6 +52,8 @@ export function VictoriaHeartTiles({ currentUsername, onClose }: Props) {
   const discoveredRef = useRef(false);
 
   const boardRef = useRef<HTMLDivElement | null>(null);
+  const layerRef = useRef<HTMLDivElement | null>(null);
+  const scoreElRef = useRef<HTMLSpanElement | null>(null);
   const tilesRef = useRef<Tile[]>([]);
   const scoreRef = useRef(0);
   const phaseRef = useRef<Phase>("ready");
@@ -58,7 +62,10 @@ export function VictoriaHeartTiles({ currentUsername, onClose }: Props) {
   const rafRef = useRef<number | null>(null);
   const lastTsRef = useRef<number | null>(null);
   const spawnAtRef = useRef(0);
-  const [, setFrame] = useState(0); // force paint while playing
+  const boardSizeRef = useRef({ width: 0, height: 0 });
+  // Stable refs so the keyboard listener and RAF loop never go stale.
+  const tapLaneRef = useRef<(lane: number) => void>(() => undefined);
+  const endGameRef = useRef<() => void>(() => undefined);
 
   useEffect(() => {
     phaseRef.current = phase;
@@ -100,7 +107,7 @@ export function VictoriaHeartTiles({ currentUsername, onClose }: Props) {
       const lane = map[event.key.toLowerCase()];
       if (lane !== undefined) {
         event.preventDefault();
-        tapLane(lane);
+        tapLaneRef.current(lane);
       }
     }
     document.addEventListener("keydown", onKeyDown);
@@ -112,11 +119,22 @@ export function VictoriaHeartTiles({ currentUsername, onClose }: Props) {
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current);
       }
+      clearTiles();
     };
   }, []);
 
-  function bumpPaint() {
-    setFrame((value) => value + 1);
+  function clearTiles() {
+    for (const tile of tilesRef.current) {
+      tile.el.remove();
+    }
+    tilesRef.current = [];
+  }
+
+  function setLiveScore(value: number) {
+    scoreRef.current = value;
+    if (scoreElRef.current) {
+      scoreElRef.current.textContent = String(value);
+    }
   }
 
   function endGame() {
@@ -125,6 +143,7 @@ export function VictoriaHeartTiles({ currentUsername, onClose }: Props) {
     }
     phaseRef.current = "over";
     setPhase("over");
+    setScore(scoreRef.current);
     if (rafRef.current !== null) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
@@ -149,8 +168,39 @@ export function VictoriaHeartTiles({ currentUsername, onClose }: Props) {
       setIsNewBest(Boolean(payload.isNewBest));
     });
   }
+  endGameRef.current = endGame;
+
+  function measureBoard() {
+    const board = boardRef.current;
+    if (!board) {
+      return boardSizeRef.current;
+    }
+    boardSizeRef.current = { width: board.clientWidth, height: board.clientHeight };
+    return boardSizeRef.current;
+  }
+
+  function placeTile(el: HTMLDivElement, lane: number, y: number) {
+    const { width, height } = boardSizeRef.current;
+    if (width === 0 || height === 0) {
+      return;
+    }
+    const laneWidth = width / LANES;
+    // ~0.35rem padding each side, matching the old layout without reading rem each frame.
+    const pad = Math.max(4, width * 0.01);
+    el.style.transform = `translate3d(${lane * laneWidth + pad}px, ${y * height}px, 0)`;
+  }
 
   function spawnTile() {
+    const layer = layerRef.current;
+    if (!layer) {
+      return;
+    }
+    measureBoard();
+    const { width, height } = boardSizeRef.current;
+    if (width === 0 || height === 0) {
+      return;
+    }
+
     let lane = Math.floor(Math.random() * LANES);
     if (lastLaneRef.current !== null && LANES > 1) {
       let guard = 0;
@@ -160,13 +210,36 @@ export function VictoriaHeartTiles({ currentUsername, onClose }: Props) {
       }
     }
     lastLaneRef.current = lane;
+
+    const laneWidth = width / LANES;
+    const pad = Math.max(4, width * 0.01);
+    const el = document.createElement("div");
+    el.className = "pointer-events-none absolute left-0 top-0 rounded-2xl bg-stone-950";
+    el.style.width = `${laneWidth - pad * 2}px`;
+    el.style.height = `${TILE_HEIGHT_RATIO * height}px`;
+    el.style.willChange = "transform";
+    el.style.contain = "strict";
+
+    const y = -TILE_HEIGHT_RATIO;
+    placeTile(el, lane, y);
+    layer.appendChild(el);
+
     tilesRef.current.push({
       id: nextIdRef.current,
       lane,
-      y: -TILE_HEIGHT_RATIO,
-      hit: false,
+      y,
+      el,
     });
     nextIdRef.current += 1;
+  }
+
+  function removeTileAt(index: number) {
+    const tile = tilesRef.current[index];
+    if (!tile) {
+      return;
+    }
+    tile.el.remove();
+    tilesRef.current.splice(index, 1);
   }
 
   function tick(ts: number) {
@@ -178,10 +251,25 @@ export function VictoriaHeartTiles({ currentUsername, onClose }: Props) {
     lastTsRef.current = ts;
 
     const speed = speedForScore(scoreRef.current);
-    for (const tile of tilesRef.current) {
-      if (!tile.hit) {
-        tile.y += speed * dt;
+    const missLine = HIT_LINE_RATIO + HIT_WINDOW_RATIO / 2;
+    let missed = false;
+
+    // Walk backwards so splice-on-remove stays safe.
+    for (let i = tilesRef.current.length - 1; i >= 0; i -= 1) {
+      const tile = tilesRef.current[i];
+      if (!tile) {
+        continue;
       }
+      tile.y += speed * dt;
+      if (tile.y > missLine) {
+        missed = true;
+        break;
+      }
+      if (tile.y >= 1.2) {
+        removeTileAt(i);
+        continue;
+      }
+      placeTile(tile.el, tile.lane, tile.y);
     }
 
     if (ts >= spawnAtRef.current) {
@@ -189,14 +277,8 @@ export function VictoriaHeartTiles({ currentUsername, onClose }: Props) {
       spawnAtRef.current = ts + spawnIntervalForScore(scoreRef.current);
     }
 
-    const missLine = HIT_LINE_RATIO + HIT_WINDOW_RATIO / 2;
-    const missed = tilesRef.current.some((tile) => !tile.hit && tile.y > missLine);
-    tilesRef.current = tilesRef.current.filter((tile) => tile.y < 1.2 && !(tile.hit && tile.y > HIT_LINE_RATIO));
-
-    bumpPaint();
-
     if (missed) {
-      endGame();
+      endGameRef.current();
       return;
     }
 
@@ -204,8 +286,9 @@ export function VictoriaHeartTiles({ currentUsername, onClose }: Props) {
   }
 
   function startGame() {
-    tilesRef.current = [];
-    scoreRef.current = 0;
+    clearTiles();
+    measureBoard();
+    setLiveScore(0);
     setScore(0);
     setIsNewBest(false);
     lastLaneRef.current = null;
@@ -228,23 +311,34 @@ export function VictoriaHeartTiles({ currentUsername, onClose }: Props) {
 
     const hitMin = HIT_LINE_RATIO - HIT_WINDOW_RATIO;
     const hitMax = HIT_LINE_RATIO + HIT_WINDOW_RATIO / 2;
-    const candidates = tilesRef.current
-      .filter((tile) => tile.lane === lane && !tile.hit && tile.y + TILE_HEIGHT_RATIO >= hitMin && tile.y <= hitMax)
-      .sort((left, right) => right.y - left.y);
 
-    const target = candidates[0];
-    if (!target) {
-      endGame();
+    let bestIndex = -1;
+    let bestY = -Infinity;
+    for (let i = 0; i < tilesRef.current.length; i += 1) {
+      const tile = tilesRef.current[i];
+      if (!tile || tile.lane !== lane) {
+        continue;
+      }
+      if (tile.y + TILE_HEIGHT_RATIO < hitMin || tile.y > hitMax) {
+        continue;
+      }
+      if (tile.y > bestY) {
+        bestY = tile.y;
+        bestIndex = i;
+      }
+    }
+
+    if (bestIndex < 0) {
+      endGameRef.current();
       return;
     }
 
-    target.hit = true;
-    scoreRef.current += 1;
-    setScore(scoreRef.current);
-    bumpPaint();
+    // Gone immediately — no pink ghost left to accumulate.
+    removeTileAt(bestIndex);
+    setLiveScore(scoreRef.current + 1);
   }
+  tapLaneRef.current = tapLane;
 
-  const tiles = tilesRef.current;
   const yourBest = scores.find((row) => row.username === currentUsername)?.highScore ?? 0;
 
   return (
@@ -287,7 +381,10 @@ export function VictoriaHeartTiles({ currentUsername, onClose }: Props) {
 
       <div className="mx-4 mb-2 flex items-baseline justify-between text-sm">
         <p>
-          Score <span className="text-lg font-semibold tabular-nums">{score}</span>
+          Score{" "}
+          <span ref={scoreElRef} className="text-lg font-semibold tabular-nums">
+            {score}
+          </span>
         </p>
         <p className="text-stone-600">
           Your best <span className="font-medium tabular-nums text-stone-900">{yourBest}</span>
@@ -304,7 +401,8 @@ export function VictoriaHeartTiles({ currentUsername, onClose }: Props) {
           style={{ top: `${HIT_LINE_RATIO * 100}%` }}
         />
 
-        <div className="absolute inset-0 grid grid-cols-4">
+        {/* Lane hit targets — static, never re-rendered during play. */}
+        <div className="absolute inset-0 z-20 grid grid-cols-4">
           {Array.from({ length: LANES }, (_, lane) => (
             <button
               key={lane}
@@ -313,29 +411,17 @@ export function VictoriaHeartTiles({ currentUsername, onClose }: Props) {
               className="relative border-r border-stone-200/70 last:border-r-0 focus:outline-none"
               onPointerDown={(event) => {
                 event.preventDefault();
-                tapLane(lane);
+                tapLaneRef.current(lane);
               }}
             />
           ))}
         </div>
 
-        {tiles.map((tile) => (
-          <div
-            key={tile.id}
-            className={`pointer-events-none absolute rounded-2xl shadow-md transition-opacity ${
-              tile.hit ? "bg-rose-200/70 opacity-40" : "bg-stone-950"
-            }`}
-            style={{
-              left: `calc(${(tile.lane / LANES) * 100}% + 0.35rem)`,
-              width: `calc(${100 / LANES}% - 0.7rem)`,
-              top: `${tile.y * 100}%`,
-              height: `${TILE_HEIGHT_RATIO * 100}%`,
-            }}
-          />
-        ))}
+        {/* Tiles are written here imperatively so React stays out of the hot path. */}
+        <div ref={layerRef} className="pointer-events-none absolute inset-0 z-10" />
 
         {phase !== "playing" ? (
-          <div className="absolute inset-0 z-20 grid place-items-center bg-[#f7efe7]/75 px-6 backdrop-blur-[2px]">
+          <div className="absolute inset-0 z-30 grid place-items-center bg-[#f7efe7]/75 px-6">
             <div className="max-w-sm rounded-[1.75rem] border border-white/70 bg-white/90 p-5 text-center shadow-xl">
               {phase === "ready" ? (
                 <>

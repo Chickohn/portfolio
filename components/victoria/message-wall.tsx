@@ -133,9 +133,42 @@ export function VictoriaMessageWall({ initialMessages, currentUsername, realtime
   const [error, setError] = useState<string | null>(null);
   const liveRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   // Only connect once the wall is actually on screen — the Ably bundle is ~85KB
   // gzipped from a third-party CDN and opens a WebSocket as soon as it loads.
   const [shouldConnect, setShouldConnect] = useState(false);
+
+  function scrollListToBottom() {
+    const list = listRef.current;
+    if (!list) {
+      return;
+    }
+    list.scrollTop = list.scrollHeight;
+  }
+
+  // Pin to the newest notes on first paint. Double rAF waits until the bubbles
+  // have laid out (esp. on mobile after hydrate), otherwise scrollHeight can
+  // still be the empty-container height.
+  useEffect(() => {
+    let cancelled = false;
+    let inner = 0;
+    const outer = window.requestAnimationFrame(() => {
+      inner = window.requestAnimationFrame(() => {
+        if (!cancelled) {
+          scrollListToBottom();
+        }
+      });
+    });
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(outer);
+      window.cancelAnimationFrame(inner);
+    };
+  }, []);
+
+  useEffect(() => {
+    scrollListToBottom();
+  }, [messages]);
 
   useEffect(() => {
     if (!realtimeEnabled || shouldConnect) {
@@ -266,7 +299,7 @@ export function VictoriaMessageWall({ initialMessages, currentUsername, realtime
         </h2>
         <p className="text-sm text-stone-600">In case you want to send me a message I can find later</p>
       </div>
-      <div className="max-h-[28rem] space-y-3 overflow-y-auto pr-1">
+      <div ref={listRef} className="max-h-[28rem] space-y-3 overflow-y-auto pr-1">
         {messages.length === 0 ? (
           <p className="rounded-2xl border border-dashed border-stone-300 bg-white/60 p-4 text-sm text-stone-600">
             No notes yet.
